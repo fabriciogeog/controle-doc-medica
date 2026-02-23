@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧹 Limpeza de Documentos de Teste</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
+        .resultado { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .sucesso { background: #d4edda; color: #155724; }
+        .erro { background: #f8d7da; color: #721c24; }
+        .aviso { background: #fff3cd; color: #856404; }
+        .btn { padding: 8px 16px; margin: 5px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #007bff; color: white; border: 1px solid #007bff; }
+        .btn-danger { background: #dc3545; color: white; border: 1px solid #dc3545; }
+        .btn-outline { background: white; color: #007bff; border: 1px solid #007bff; }
+        .documento { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #dee2e6; }
+        .documento.teste { border-color: #ffc107; background: #fffbf0; }
+        .checkbox { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🧹 Limpeza de Documentos de Teste</h1>
+    
+    <div class="resultado aviso">
+        <strong>⚠️ Atenção:</strong> Esta página identifica e permite excluir documentos de teste que foram cadastrados com caminhos incorretos ou descrições de teste.
+    </div>
+    
+    <div>
+        <button class="btn btn-primary" onclick="carregarDocumentos()">📋 Carregar Documentos</button>
+        <button class="btn btn-danger" onclick="excluirSelecionados()" id="btnExcluir" disabled>🗑️ Excluir Selecionados</button>
+        <button class="btn btn-outline" onclick="selecionarTodos()">☑️ Selecionar Todos os Testes</button>
+    </div>
+    
+    <div id="listaDocumentos"></div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/cadastro-pedro.html" class="btn btn-primary">📝 Cadastro Limpo</a>
+        <a href="/verificar-caminhos.html" class="btn btn-outline">🔍 Verificar Caminhos</a>
+        <a href="/" class="btn btn-outline">🏠 Sistema Principal</a>
+    </div>
+
+    <script>
+        let documentos = [];
+        
+        async function carregarDocumentos() {
+            const container = document.getElementById('listaDocumentos');
+            container.innerHTML = '<div class="resultado">🔄 Carregando documentos...</div>';
+            
+            try {
+                // Fazer login se necessário
+                const authResponse = await fetch('/api/auth/check');
+                const authData = await authResponse.json();
+                
+                if (!authData.authenticated) {
+                    await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ senha: 'DocMed2025' })
+                    });
+                }
+                
+                // Buscar todos os documentos
+                const response = await fetch('/api/documentos?limit=50');
+                const data = await response.json();
+                
+                if (data.success) {
+                    documentos = data.data;
+                    renderizarDocumentos();
+                } else {
+                    container.innerHTML = '<div class="resultado erro">❌ Erro ao carregar: ' + data.message + '</div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="resultado erro">❌ Erro: ' + error.message + '</div>';
+            }
+        }
+        
+        function renderizarDocumentos() {
+            const container = document.getElementById('listaDocumentos');
+            
+            if (documentos.length === 0) {
+                container.innerHTML = '<div class="resultado">📄 Nenhum documento encontrado</div>';
+                return;
+            }
+            
+            let html = '<h3>📋 Documentos Encontrados:</h3>';
+            let documentosTeste = 0;
+            
+            documentos.forEach((doc, index) => {
+                const ehTeste = identificarTeste(doc);
+                if (ehTeste) documentosTeste++;
+                
+                html += `<div class="documento ${ehTeste ? 'teste' : ''}">`;
+                html += `<input type="checkbox" class="checkbox" id="doc_${doc._id}" ${ehTeste ? 'checked' : ''} onchange="atualizarBotaoExcluir()">`;
+                html += `<label for="doc_${doc._id}">`;
+                html += `<strong>${doc.descricao}</strong> ${ehTeste ? '🧪' : ''}<br>`;
+                html += `<strong>Tipo:</strong> ${doc.tipoDocumento}<br>`;
+                html += `<strong>Data:</strong> ${new Date(doc.dataCriacaoRegistro).toLocaleDateString('pt-BR')}<br>`;
+                
+                if (doc.arquivos && doc.arquivos.length > 0) {
+                    html += `<strong>Arquivos (${doc.arquivos.length}):</strong><br>`;
+                    doc.arquivos.forEach(arquivo => {
+                        const caminhoIncorreto = arquivo.caminhoAbsoluto.includes('/home/usuario/') || 
+                                               !arquivo.caminhoAbsoluto.includes('Pedro - Saúde');
+                        html += `&nbsp;&nbsp;📄 <code style="${caminhoIncorreto ? 'color: red;' : ''}">${arquivo.caminhoAbsoluto}</code>`;
+                        if (caminhoIncorreto) html += ' ❌';
+                        html += '<br>';
+                    });
+                }
+                html += `</label></div>`;
+            });
+            
+            if (documentosTeste > 0) {
+                html = `<div class="resultado aviso">
+                    <strong>🧪 ${documentosTeste} documento(s) de teste identificado(s)</strong><br>
+                    Critérios: descrições com "teste", caminhos com "/home/usuario/" ou caminhos fora do diretório correto.
+                </div>` + html;
+            }
+            
+            container.innerHTML = html;
+            atualizarBotaoExcluir();
+        }
+        
+        function identificarTeste(doc) {
+            // Critérios para identificar documentos de teste
+            const descricaoTeste = /teste|test|exemplo|debug|prova/i.test(doc.descricao);
+            const caminhoIncorreto = doc.arquivos && doc.arquivos.some(arq => 
+                arq.caminhoAbsoluto.includes('/home/usuario/') || 
+                !arq.caminhoAbsoluto.includes('Pedro - Saúde')
+            );
+            const descricaoGenerica = doc.descricao.toLowerCase().trim() === 'teste' || 
+                                     doc.descricao.toLowerCase().includes('cadastro automatizado');
+            
+            return descricaoTeste || caminhoIncorreto || descricaoGenerica;
+        }
+        
+        function selecionarTodos() {
+            documentos.forEach(doc => {
+                if (identificarTeste(doc)) {
+                    const checkbox = document.getElementById(`doc_${doc._id}`);
+                    if (checkbox) checkbox.checked = true;
+                }
+            });
+            atualizarBotaoExcluir();
+        }
+        
+        function atualizarBotaoExcluir() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const btn = document.getElementById('btnExcluir');
+            btn.disabled = checkboxes.length === 0;
+            btn.textContent = `🗑️ Excluir Selecionados (${checkboxes.length})`;
+        }
+        
+        async function excluirSelecionados() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const idsParaExcluir = Array.from(checkboxes).map(cb => cb.id.replace('doc_', ''));
+            
+            if (idsParaExcluir.length === 0) {
+                alert('❌ Nenhum documento selecionado');
+                return;
+            }
+            
+            const confirmacao = confirm(`⚠️ Tem certeza que deseja excluir ${idsParaExcluir.length} documento(s)?\n\nEsta ação não pode ser desfeita.`);
+            if (!confirmacao) return;
+            
+            const container = document.getElementById('listaDocumentos');
+            container.innerHTML = '<div class="resultado">🔄 Excluindo documentos...</div>';
+            
+            let sucessos = 0;
+            let erros = 0;
+            
+            for (const id of idsParaExcluir) {
+                try {
+                    const response = await fetch(`/api/documentos/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        sucessos++;
+                    } else {
+                        erros++;
+                    }
+                } catch (error) {
+                    erros++;
+                }
+            }
+            
+            let mensagem = '';
+            if (sucessos > 0) mensagem += `✅ ${sucessos} documento(s) excluído(s) com sucesso. `;
+            if (erros > 0) mensagem += `❌ ${erros} erro(s) durante a exclusão.`;
+            
+            container.innerHTML = `<div class="resultado ${erros === 0 ? 'sucesso' : 'aviso'}">${mensagem}</div>`;
+            
+            // Recarregar lista após exclusão
+            setTimeout(() => {
+                carregarDocumentos();
+            }, 1500);
+        }
+        
+        // Carregar automaticamente
+        document.addEventListener('DOMContentLoaded', carregarDocumentos);
+    </script>
+</body>
+</html>

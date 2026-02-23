@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Verificação de Caminhos</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .resultado { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .sucesso { background: #d4edda; color: #155724; }
+        .erro { background: #f8d7da; color: #721c24; }
+        .btn { padding: 8px 16px; margin: 5px; border: 1px solid #007bff; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificação de Caminhos</h1>
+    
+    <div>
+        <h3>Teste do Seletor de Arquivos:</h3>
+        <input type="file" id="seletorTeste" multiple onchange="testarSeletor(this)">
+        <div id="resultadoSeletor"></div>
+    </div>
+    
+    <div>
+        <h3>Últimos Documentos Cadastrados:</h3>
+        <button class="btn" onclick="listarDocumentos()">📋 Listar Documentos</button>
+        <div id="resultadoListagem"></div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/cadastro-pedro.html" class="btn">📝 Cadastro Personalizado</a>
+        <a href="/" class="btn">🏠 Sistema Principal</a>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        function testarSeletor(input) {
+            const resultado = document.getElementById('resultadoSeletor');
+            const arquivos = input.files;
+            
+            if (arquivos.length === 0) {
+                resultado.innerHTML = '<div class="resultado">Nenhum arquivo selecionado</div>';
+                return;
+            }
+            
+            let html = '<div class="resultado sucesso">';
+            html += `<strong>✅ ${arquivos.length} arquivo(s) selecionado(s):</strong><br>`;
+            
+            for (let i = 0; i < arquivos.length; i++) {
+                const arquivo = arquivos[i];
+                const caminhoSimulado = `/home/fabricio/Documentos/Assuntos - Pedro/Pedro - Saúde/${arquivo.name}`;
+                html += `<div style="margin: 5px 0; padding: 5px; background: white; border-radius: 4px;">`;
+                html += `<strong>Nome:</strong> ${arquivo.name}<br>`;
+                html += `<strong>Caminho que será salvo:</strong> <code>${caminhoSimulado}</code><br>`;
+                html += `<strong>Tamanho:</strong> ${arquivo.size} bytes`;
+                html += `</div>`;
+            }
+            html += '</div>';
+            
+            resultado.innerHTML = html;
+        }
+
+        async function listarDocumentos() {
+            const resultado = document.getElementById('resultadoListagem');
+            resultado.innerHTML = '<div class="resultado">🔄 Carregando...</div>';
+            
+            try {
+                // Fazer login se necessário
+                const authResponse = await fetch('/api/auth/check');
+                const authData = await authResponse.json();
+                
+                if (!authData.authenticated) {
+                    await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ senha: 'DocMed2025' })
+                    });
+                }
+                
+                // Buscar documentos
+                const response = await fetch('/api/documentos?limit=5');
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    let html = '<div class="resultado sucesso">';
+                    html += `<strong>✅ Últimos ${data.data.length} documento(s):</strong><br><br>`;
+                    
+                    data.data.forEach((doc, index) => {
+                        html += `<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border: 1px solid #ccc;">`;
+                        html += `<strong>${index + 1}. ${doc.descricao}</strong><br>`;
+                        html += `<strong>Tipo:</strong> ${doc.tipoDocumento}<br>`;
+                        
+                        if (doc.arquivos && doc.arquivos.length > 0) {
+                            html += `<strong>Arquivos (${doc.arquivos.length}):</strong><br>`;
+                            doc.arquivos.forEach(arquivo => {
+                                html += `&nbsp;&nbsp;📄 <code>${arquivo.caminhoAbsoluto}</code><br>`;
+                            });
+                        }
+                        html += `</div>`;
+                    });
+                    html += '</div>';
+                    
+                    resultado.innerHTML = html;
+                } else {
+                    resultado.innerHTML = '<div class="resultado">📄 Nenhum documento encontrado</div>';
+                }
+            } catch (error) {
+                resultado.innerHTML = '<div class="resultado erro">❌ Erro ao carregar documentos: ' + error.message + '</div>';
+            }
+        }
+        
+        // Carregar documentos automaticamente
+        document.addEventListener('DOMContentLoaded', () => {
+            listarDocumentos();
+        });
+    </script>
+</body>
+</html>

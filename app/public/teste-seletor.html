@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste do Seletor de Arquivos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste do Seletor de Arquivos</h1>
+        
+        <div class="status">
+            <h3>Status do Sistema:</h3>
+            <div id="statusSistema">Carregando...</div>
+        </div>
+        
+        <div class="form-group">
+            <label>Teste do Seletor de Arquivos:</label>
+            
+            <!-- Botão para abrir navegador de arquivos -->
+            <div style="margin-bottom: 15px;">
+                <input type="file" id="seletorArquivos" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" onchange="testeCapturarCaminhos(this)">
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('seletorArquivos').click()">
+                    📁 Navegar e Selecionar Arquivos
+                </button>
+            </div>
+            
+            <!-- Lista de arquivos selecionados -->
+            <div id="listaArquivosSelecionados" style="margin-bottom: 15px;"></div>
+            
+            <!-- Campo hidden com caminhos -->
+            <textarea id="caminhos" rows="3" style="display: none;"></textarea>
+            
+            <small>📝 Clique em "Navegar e Selecionar Arquivos" para escolher documentos PDF, JPG, PNG, etc.</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Log de Testes:</label>
+            <div id="logTestes" class="log">Aguardando testes...</div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-outline" onclick="limparTeste()">🗑️ Limpar</button>
+            <a href="/debug.html" class="btn btn-outline">🔧 Ir para Debug</a>
+            <a href="/" class="btn btn-primary">🏠 Voltar para Sistema</a>
+        </div>
+    </div>
+
+    <script>
+        // Status do sistema
+        function checkStatus() {
+            const status = document.getElementById('statusSistema');
+            
+            // Verificar se a aplicação global está disponível
+            if (typeof window.app !== 'undefined') {
+                status.innerHTML = '✅ Aplicação JavaScript carregada (window.app disponível)';
+            } else {
+                status.innerHTML = '❌ Aplicação JavaScript não carregada ou window.app não disponível';
+            }
+            
+            // Verificar se as funções estão disponíveis
+            if (typeof testeCapturarCaminhos === 'function') {
+                status.innerHTML += '<br>✅ Função testeCapturarCaminhos disponível';
+            } else {
+                status.innerHTML += '<br>❌ Função testeCapturarCaminhos não encontrada';
+            }
+        }
+        
+        // Função para capturar caminhos dos arquivos selecionados (versão de teste)
+        function testeCapturarCaminhos(input) {
+            const arquivos = input.files;
+            const caminhos = [];
+            const lista = document.getElementById('listaArquivosSelecionados');
+            const campoHidden = document.getElementById('caminhos');
+            const log = document.getElementById('logTestes');
+            
+            log.textContent += `[${new Date().toLocaleTimeString()}] Selecionados ${arquivos.length} arquivos\n`;
+            
+            if (arquivos.length === 0) {
+                lista.innerHTML = '';
+                campoHidden.value = '';
+                log.textContent += `[${new Date().toLocaleTimeString()}] Lista limpa\n`;
+                return;
+            }
+            
+            // Processar cada arquivo selecionado
+            for (let i = 0; i < arquivos.length; i++) {
+                const arquivo = arquivos[i];
+            const caminhoSimulado = `/home/fabricio/Documentos/Assuntos - Pedro/Pedro - Saúde/${arquivo.name}`;
+                caminhos.push(caminhoSimulado);
+                
+                log.textContent += `[${new Date().toLocaleTimeString()}] Arquivo ${i+1}: ${arquivo.name} (${arquivo.size} bytes, ${arquivo.type})\n`;
+                log.textContent += `[${new Date().toLocaleTimeString()}] Caminho simulado: ${caminhoSimulado}\n`;
+            }
+            
+            // Atualizar a lista visual
+            lista.innerHTML = `
+                <div style="background: #f5f5f5; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                    <strong>Arquivos Selecionados (${arquivos.length}):</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        ${caminhos.map(c => `<li><small>${c}</small></li>`).join('')}
+                    </ul>
+                    <small><em>⚠️ Nota: Os caminhos são baseados nos nomes dos arquivos. 
+                    Certifique-se de que os arquivos estão no local correto ou edite os caminhos conforme necessário.</em></small>
+                    <button type="button" class="btn btn-outline btn-sm" style="margin-top: 10px;" onclick="editarCaminhos()">
+                        ✏️ Editar Caminhos
+                    </button>
+                </div>
+            `;
+            
+            // Atualizar campo hidden com os caminhos
+            campoHidden.value = caminhos.join('\n');
+            campoHidden.style.display = 'block'; // Mostrar para debug
+            
+            log.textContent += `[${new Date().toLocaleTimeString()}] Campo hidden atualizado com ${caminhos.length} caminhos\n`;
+            
+            // Rolar o log para baixo
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function editarCaminhos() {
+            alert('Função editarCaminhos() seria implementada aqui!');
+        }
+        
+        function limparTeste() {
+            document.getElementById('listaArquivosSelecionados').innerHTML = '';
+            document.getElementById('caminhos').value = '';
+            document.getElementById('logTestes').textContent = 'Aguardando testes...';
+            document.getElementById('seletorArquivos').value = '';
+        }
+        
+        // Executar verificação de status quando carregar
+        document.addEventListener('DOMContentLoaded', checkStatus);
+    </script>
+</body>
+</html>

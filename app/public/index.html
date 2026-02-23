@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Documentação Médica</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/profissionais-table.css">
+    <link rel="stylesheet" href="css/profissional-selector.css">
+    <link rel="stylesheet" href="css/dashboard-enhanced.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏥 Acesso ao Sistema</h2>
+                <p>Digite a senha para acessar os documentos médicos</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" required placeholder="Digite a senha de acesso">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </div>
+            </form>
+            <div id="loginError" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>📋 Controle de Documentação Médica</h1>
+                    <p>Sistema Pessoal de Gerenciamento de Documentos</p>
+                </div>
+                <div class="header-right">
+                    <button id="logoutBtn" class="btn btn-outline">Sair</button>
+                </div>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+                <button class="nav-tab" data-tab="documentos">Documentos</button>
+                <button class="nav-tab" data-tab="profissionais">👨‍⚕️ Profissionais</button>
+                <button class="nav-tab" data-tab="cadastrar">Cadastrar</button>
+                <button class="nav-tab" data-tab="pesquisar">Pesquisar</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="stats-card">
+                        <div class="stats-icon">📈</div>
+                        <div class="stats-info">
+                            <h3 id="totalDocumentos">0</h3>
+                            <p>Total de Documentos</p>
+                            <span class="stats-subtitle">Cadastrados no sistema</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card">
+                        <div class="stats-icon">📊</div>
+                        <div class="stats-info">
+                            <h3 id="tipoMaisComum">-</h3>
+                            <p>Tipo Mais Comum</p>
+                            <span class="stats-subtitle">0 documento(s)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card">
+                        <div class="stats-icon">🩺</div>
+                        <div class="stats-info">
+                            <h3 id="especialidadeMaisComum">-</h3>
+                            <p>Especialidade Mais Comum</p>
+                            <span class="stats-subtitle">0 documento(s)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <h2>📈 Distribuição por Tipo</h2>
+                    <div id="graficoTipos" class="grafico-container">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <h2>📊 Últimos 10 Documentos</h2>
+                    <div id="documentosRecentes" class="documentos-recentes">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentos Tab -->
+            <div id="documentos" class="tab-content">
+                <div class="section-header">
+                    <h2>📋 Lista de Documentos</h2>
+                    <div class="section-actions">
+                        <button id="refreshDocumentos" class="btn btn-outline">🔄 Atualizar</button>
+                    </div>
+                </div>
+                
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>Tipo:</label>
+                        <select id="filtroTipo">
+                            <option value="">Todos</option>
+                            <option value="Relatório">Relatório</option>
+                            <option value="Exame">Exame</option>
+                            <option value="Receita">Receita</option>
+                            <option value="Laudo">Laudo</option>
+                            <option value="Atestado">Atestado</option>
+                            <option value="Cartão de Vacina">Cartão de Vacina</option>
+                            <option value="Resultado">Resultado</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Especialidade:</label>
+                        <input type="text" id="filtroEspecialidade" placeholder="Digite a especialidade">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Data Inicial:</label>
+                        <input type="date" id="filtroDataInicio">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Data Final:</label>
+                        <input type="date" id="filtroDataFim">
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button id="aplicarFiltros" class="btn btn-primary">Filtrar</button>
+                        <button id="limparFiltros" class="btn btn-outline">Limpar</button>
+                    </div>
+                </div>
+
+                <div id="listaDocumentos" class="documentos-lista">
+                    <!-- Carregado via JavaScript -->
+                </div>
+                
+                <div id="paginacao" class="pagination">
+                    <!-- Carregado via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Cadastrar Tab -->
+            <div id="cadastrar" class="tab-content">
+                <div class="section-header">
+                    <h2>➕ Cadastrar Novo Documento</h2>
+                </div>
+                
+                <form id="cadastroForm" class="form-grid" enctype="multipart/form-data">
+                    <!-- Seletor de Profissional -->
+                    <div class="form-group full-width">
+                        <label class="required">Profissional Solicitante:</label>
+                        <div class="profissional-selector">
+                            <div class="selector-tabs">
+                                <button type="button" id="tabProfissionalExistente" class="selector-tab active" 
+                                        onclick="app.toggleProfissionalSelector('existente')">
+                                    📊 Selecionar Cadastrado
+                                </button>
+                                <button type="button" id="tabProfissionalNovo" class="selector-tab" 
+                                        onclick="app.toggleProfissionalSelector('novo')">
+                                    ✏️ Digitar Manualmente
+                                </button>
+                            </div>
+                            
+                            <!-- Seletor de profissional existente -->
+                            <div id="selectorExistente" class="selector-content active">
+                                <div class="search-profissional">
+                                    <input type="text" id="buscaProfissionalCadastro" 
+                                           placeholder="Digite o nome, registro ou especialidade do profissional..." 
+                                           autocomplete="off">
+                                    <div id="listaProfissionaisDropdown" class="profissionais-dropdown" style="display: none;"></div>
+                                </div>
+                                <div id="profissionalSelecionado" class="profissional-selecionado" style="display: none;">
+                                    <div class="profissional-info">
+                                        <div class="profissional-nome"></div>
+                                        <div class="profissional-detalhes"></div>
+                                    </div>
+                                    <button type="button" class="btn-limpar" onclick="app.limparProfissionalSelecionado()">
+                                        ❌ Limpar Seleção
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Campos manuais -->
+                            <div id="selectorManual" class="selector-content">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="profissionalNome" class="required">Nome do Profissional:</label>
+                                        <input type="text" id="profissionalNome" 
+                                               placeholder="Ex: Dr. João Silva">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="profissionalRegistro" class="required">Registro Profissional:</label>
+                                        <input type="text" id="profissionalRegistro" 
+                                               placeholder="Ex: CRM/SP 123456">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="profissionalEspecialidade">Especialidade do Profissional:</label>
+                                    <input type="text" id="profissionalEspecialidade" 
+                                           placeholder="Ex: Pediatra, Cardiologista">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campos hidden para envio -->
+                        <input type="hidden" id="profissionalSolicitanteNome" name="profissionalSolicitante.nome">
+                        <input type="hidden" id="profissionalSolicitanteRegistro" name="profissionalSolicitante.numeroRegistro">
+                        <input type="hidden" id="profissionalSolicitanteEspecialidade" name="profissionalSolicitante.especialidade">
+                    </div>
+                    
+                    <!-- Agrupamento de informações do documento -->
+                    <div class="documento-info-group full-width">
+                        <h3 class="group-title">📋 Informações do Documento</h3>
+                        <div class="form-group-container">
+                            <div class="form-group">
+                                <label for="tipoDocumento" class="required">Tipo do Documento:</label>
+                                <select id="tipoDocumento" name="tipoDocumento" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="Relatório">Relatório</option>
+                                    <option value="Exame">Exame</option>
+                                    <option value="Receita">Receita</option>
+                                    <option value="Laudo">Laudo</option>
+                                    <option value="Atestado">Atestado</option>
+                                    <option value="Cartão de Vacina">Cartão de Vacina</option>
+                                    <option value="Resultado">Resultado</option>
+                                    <option value="Outro">Outro</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="especialidadeMedica" class="required">Especialidade Médica:</label>
+                                <input type="text" id="especialidadeMedica" name="especialidadeMedica" required 
+                                       placeholder="Ex: Cardiologia, Neurologia, Pediatria">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="dataSolicitacaoEmissao" class="required">Data do Documento:</label>
+                                <input type="date" id="dataSolicitacaoEmissao" name="dataSolicitacaoEmissao" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="descricao" class="required">Descrição:</label>
+                        <textarea id="descricao" name="descricao" required rows="3" 
+                                  placeholder="Descrição detalhada do documento"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instituicaoNome" class="required">Nome da Instituição:</label>
+                        <input type="text" id="instituicaoNome" name="instituicao.nome" required 
+                               placeholder="Ex: Hospital São Lucas">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="instituicaoCnpj">CNPJ da Instituição:</label>
+                        <input type="text" id="instituicaoCnpj" name="instituicao.cnpj" 
+                               placeholder="00.000.000/0000-00">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="tags">Tags (separadas por vírgula):</label>
+                        <input type="text" id="tags" name="tags" 
+                               placeholder="Ex: exame, sangue, rotina">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="observacoes">Observações:</label>
+                        <textarea id="observacoes" name="observacoes" rows="3" 
+                                  placeholder="Observações adicionais sobre o documento"></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="caminhos">Arquivos do Documento:</label>
+                        
+                        <!-- Botão para abrir navegador de arquivos -->
+                        <div style="margin-bottom: 15px;">
+                            <input type="file" id="seletorArquivos" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" onchange="app.capturarCaminhos(this)">
+                            <button type="button" class="btn btn-outline" onclick="document.getElementById('seletorArquivos').click()">
+                                📁 Navegar e Selecionar Arquivos
+                            </button>
+                        </div>
+                        
+                        <!-- Lista de arquivos selecionados -->
+                        <div id="listaArquivosSelecionados" style="margin-bottom: 15px;"></div>
+                        
+                        <!-- Campo hidden com caminhos -->
+                        <textarea id="caminhos" name="caminhos" rows="3" style="display: none;"></textarea>
+                        
+                        <small>📝 Clique em "Navegar e Selecionar Arquivos" para escolher documentos PDF, JPG, PNG, etc.</small>
+                    </div>
+                    
+                    <div class="form-actions full-width">
+                        <button type="submit" class="btn btn-primary">💾 Salvar Documento</button>
+                        <button type="reset" class="btn btn-outline">🔄 Limpar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pesquisar Tab -->
+            <div id="pesquisar" class="tab-content">
+                <div class="section-header">
+                    <h2>🔍 Pesquisar Documentos</h2>
+                </div>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="busca" placeholder="Digite sua pesquisa... (descrição, profissional, instituição, tags, observações)">
+                        <button id="btnBuscar" class="btn btn-primary">🔍 Buscar</button>
+                    </div>
+                </div>
+                
+                <div class="advanced-search">
+                    <h3>🎛️ Pesquisa Avançada</h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>Profissional:</label>
+                            <input type="text" id="buscaProfissional" placeholder="Nome do profissional">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Instituição:</label>
+                            <input type="text" id="buscaInstituicao" placeholder="Nome da instituição">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Período de:</label>
+                            <input type="date" id="buscaDataInicio">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Até:</label>
+                            <input type="date" id="buscaDataFim">
+                        </div>
+                    </div>
+                    
+                    <div class="search-actions">
+                        <button id="buscarAvancado" class="btn btn-primary">🔍 Pesquisar</button>
+                        <button id="limparBusca" class="btn btn-outline">🧹 Limpar</button>
+                    </div>
+                </div>
+                
+                <div id="resultadosBusca" class="resultados-busca">
+                    <!-- Carregado via JavaScript -->
+                </div>
+            </div>
+
+            <!-- 👨‍⚕️ Profissionais Tab -->
+            <div id="profissionais" class="tab-content">
+                <div class="section-header">
+                    <h2>👨‍⚕️ Gestão de Profissionais</h2>
+                    <div class="section-actions">
+                        <button id="novoProfissionalBtn" class="btn btn-primary">➕ Novo Profissional</button>
+                        <button id="refreshProfissionais" class="btn btn-outline">🔄 Atualizar</button>
+                    </div>
+                </div>
+                
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>Buscar:</label>
+                        <input type="text" id="buscaProfissional" placeholder="Nome, registro ou especialidade...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Especialidade:</label>
+                        <select id="filtroEspecialidadeProfissional">
+                            <option value="">Todas</option>
+                            <!-- Carregado dinamicamente -->
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="filtroStatusProfissional">
+                            <option value="true">Somente Ativos</option>
+                            <option value="false">Somente Inativos</option>
+                            <option value="all">Todos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button id="filtrarProfissionais" class="btn btn-primary">Filtrar</button>
+                        <button id="limparFiltrosProfissionais" class="btn btn-outline">Limpar</button>
+                    </div>
+                </div>
+
+                <div id="listaProfissionais" class="profissionais-lista">
+                    <!-- Carregado via JavaScript -->
+                </div>
+                
+                <div id="paginacaoProfissionais" class="pagination">
+                    <!-- Carregado via JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>✏️ Editar Documento</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="editForm" class="form-grid" enctype="multipart/form-data">
+                <input type="hidden" id="editId" name="id">
+                <!-- Campos similares ao formulário de cadastro -->
+                <!-- Será preenchido dinamicamente via JavaScript -->
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>👁️ Visualizar Documento</h2>
+                <button class="modal-close" onclick="app.fecharModalVisualizacao()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="view-container">
+                    <!-- Informações básicas -->
+                    <div class="view-section">
+                        <h3>📋 Informações Básicas</h3>
+                        <div class="view-grid">
+                            <div class="view-field">
+                                <label>Tipo de Documento:</label>
+                                <span id="view-tipoDocumento" class="view-value"></span>
+                            </div>
+                            <div class="view-field">
+                                <label>Especialidade Médica:</label>
+                                <span id="view-especialidadeMedica" class="view-value"></span>
+                            </div>
+                            <div class="view-field">
+                                <label>Data do Documento:</label>
+                                <span id="view-dataSolicitacaoEmissao" class="view-value"></span>
+                            </div>
+                            <div class="view-field full-width">
+                                <label>Descrição:</label>
+                                <div id="view-descricao" class="view-value description"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profissional -->
+                    <div class="view-section">
+                        <h3>👨‍⚕️ Profissional Responsável</h3>
+                        <div class="view-grid">
+                            <div class="view-field">
+                                <label>Nome:</label>
+                                <span id="view-profissionalNome" class="view-value"></span>
+                            </div>
+                            <div class="view-field">
+                                <label>Registro:</label>
+                                <span id="view-profissionalRegistro" class="view-value"></span>
+                            </div>
+                            <div class="view-field">
+                                <label>Especialidade:</label>
+                                <span id="view-profissionalEspecialidade" class="view-value"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instituição -->
+                    <div class="view-section">
+                        <h3>🏥 Instituição</h3>
+                        <div class="view-grid">
+                            <div class="view-field">
+                                <label>Nome:</label>
+                                <span id="view-instituicaoNome" class="view-value"></span>
+                            </div>
+                            <div class="view-field">
+                                <label>CNPJ:</label>
+                                <span id="view-instituicaoCnpj" class="view-value"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Arquivos -->
+                    <div class="view-section">
+                        <h3>📁 Arquivos Anexos</h3>
+                        <div id="view-arquivos" class="view-files">
+                            <!-- Carregado dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Tags e Observações -->
+                    <div class="view-section">
+                        <h3>🏷️ Tags e Observações</h3>
+                        <div class="view-grid">
+                            <div class="view-field full-width">
+                                <label>Tags:</label>
+                                <div id="view-tags" class="view-tags"></div>
+                            </div>
+                            <div class="view-field full-width">
+                                <label>Observações:</label>
+                                <div id="view-observacoes" class="view-value description"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datas -->
+                    <div class="view-section">
+                        <h3>📅 Controle de Datas</h3>
+                        <div class="view-grid">
+                            <div class="view-field">
+                                <label>Criado em:</label>
+                                <span id="view-dataCriacao" class="view-value"></span>
+                            </div>
+                            <div class="view-field">
+                                <label>Atualizado em:</label>
+                                <span id="view-dataAtualizacao" class="view-value"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="viewEditBtn" class="btn btn-primary" onclick="app.abrirEdicaoDoModal()">✏️ Editar</button>
+                <button id="viewCloneBtn" class="btn btn-outline" onclick="app.clonarDocumento()">📋 Clonar</button>
+                <button id="viewCloseBtn" class="btn btn-outline" onclick="app.fecharModalVisualizacao()">✖️ Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Profissional (Cadastrar/Editar) -->
+    <div id="profissionalModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="profissionalModalTitle">➕ Cadastrar Profissional</h2>
+                <button class="modal-close" onclick="app.fecharModalProfissional()">&times;</button>
+            </div>
+            <form id="profissionalForm" class="form-grid" enctype="multipart/form-data">
+                <input type="hidden" id="profissionalId" name="id">
+                
+                <div class="form-group">
+                    <label for="profissionalNomeCadastro" class="required">Nome Completo:</label>
+                    <input type="text" id="profissionalNomeCadastro" name="nome" required 
+                           placeholder="Ex: Dr. João Silva">
+                </div>
+                
+                <div class="form-group">
+                    <label for="profissionalRegistroCadastro" class="required">Número de Registro:</label>
+                    <input type="text" id="profissionalRegistroCadastro" name="numeroRegistro" required 
+                           placeholder="Ex: CRM/SP 123456">
+                </div>
+                
+                <div class="form-group">
+                    <label for="profissionalEspecialidadeCadastro" class="required">Especialidade:</label>
+                    <input type="text" id="profissionalEspecialidadeCadastro" name="especialidade" required 
+                           placeholder="Ex: Cardiologista, Pediatra">
+                </div>
+                
+                <div class="form-group">
+                    <label for="profissionalTelefone">Telefone:</label>
+                    <input type="text" id="profissionalTelefone" name="telefone" 
+                           placeholder="(11) 99999-9999">
+                </div>
+                
+                <div class="form-group">
+                    <label for="profissionalEmail">Email:</label>
+                    <input type="email" id="profissionalEmail" name="email" 
+                           placeholder="email@clinica.com">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="profissionalInstituicoes">Instituições Principais:</label>
+                    <input type="text" id="profissionalInstituicoes" name="instituicoesPrincipais" 
+                           placeholder="Hospital A, Clínica B (separe por vírgulas)">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="profissionalObservacoes">Observações:</label>
+                    <textarea id="profissionalObservacoes" name="observacoes" rows="3" 
+                              placeholder="Observações adicionais sobre o profissional"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="profissionalAtivo" name="ativo" checked>
+                        Profissional ativo
+                    </label>
+                </div>
+                
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-primary">💾 Salvar Profissional</button>
+                    <button type="button" class="btn btn-outline" onclick="app.fecharModalProfissional()">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2>⚠️ Confirmar Ação</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+            </div>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn btn-danger">Sim</button>
+                <button id="confirmNo" class="btn btn-outline">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast" style="display: none;">
+        <div id="toastMessage"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+</body>
+</html>

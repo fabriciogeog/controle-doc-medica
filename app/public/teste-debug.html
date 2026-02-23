@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Debug - Sistema Médico</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .action-btn { background: #28a745; }
+        .action-btn:hover { background: #1e7e34; }
+        .danger-btn { background: #dc3545; }
+        .danger-btn:hover { background: #c82333; }
+        form { margin: 20px 0; }
+        input, select, textarea { margin: 10px; padding: 8px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Interface - Debug Mode</h1>
+    
+    <div class="test-box">
+        <h2>Testes Básicos</h2>
+        <button onclick="testBasic()">🔧 Teste Básico JS</button>
+        <button onclick="console.log('Console log funcionando')">📝 Teste Console</button>
+        <button onclick="app.test()">🎯 Teste App Global</button>
+    </div>
+    
+    <div class="test-box">
+        <h2>Simulação de Botões de Documentos</h2>
+        <p>Estes botões simulam os botões que aparecem nos cards de documentos:</p>
+        
+        <!-- Simular card de documento -->
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            <h4>📋 Documento de Teste</h4>
+            <p><strong>Tipo:</strong> Exame</p>
+            <p><strong>Descrição:</strong> Exame de teste para debug</p>
+            
+            <!-- Botões de ação como aparecem nos cards reais -->
+            <div>
+                <button class="action-btn" onclick="app.editarDocumento('teste123')">✏️ Editar</button>
+                <button class="danger-btn" onclick="app.confirmarExclusao('teste123', 'Exame de teste para debug')">🗑️ Excluir</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Teste de Formulário de Upload</h2>
+        <form id="cadastroForm" enctype="multipart/form-data">
+            <div>
+                <label>Tipo do Documento:</label>
+                <select name="tipoDocumento" required>
+                    <option value="">Selecione...</option>
+                    <option value="Exame">Exame</option>
+                    <option value="Relatório">Relatório</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Especialidade:</label>
+                <input type="text" name="especialidadeMedica" placeholder="Ex: Cardiologia" required>
+            </div>
+            
+            <div>
+                <label>Data:</label>
+                <input type="date" name="dataSolicitacaoEmissao" required>
+            </div>
+            
+            <div>
+                <label>Profissional:</label>
+                <input type="text" name="profissionalSolicitante.nome" placeholder="Dr. João Silva" required>
+            </div>
+            
+            <div>
+                <label>Registro:</label>
+                <input type="text" name="profissionalSolicitante.numeroRegistro" placeholder="CRM/SP 123456" required>
+            </div>
+            
+            <div>
+                <label>Descrição:</label>
+                <textarea name="descricao" placeholder="Descrição do documento" required></textarea>
+            </div>
+            
+            <div>
+                <label>Instituição:</label>
+                <input type="text" name="instituicao.nome" placeholder="Hospital XYZ" required>
+            </div>
+            
+            <div>
+                <label>Arquivo PDF/Imagem:</label>
+                <input type="file" name="arquivos" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" multiple>
+            </div>
+            
+            <div>
+                <button type="submit">💾 Salvar Documento</button>
+                <button type="reset">🔄 Limpar</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Modais básicos para teste -->
+    <div id="editModal" style="display: none;">
+        <h3>Modal de Edição (Teste)</h3>
+    </div>
+    
+    <div id="confirmModal" style="display: none;">
+        <h3>Modal de Confirmação (Teste)</h3>
+    </div>
+    
+    <!-- JavaScript de debug -->
+    <script src="js/app-debug.js"></script>
+</body>
+</html>

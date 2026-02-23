@@ -1,0 +1,114 @@
+# Sistema de Controle de Documentação Médica - .gitignore
+
+# ==========================================
+# ARQUIVOS E PASTAS A SEREM IGNORADOS
+# ==========================================
+
+# Logs
+*.log
+logs/
+data/logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependências Node.js
+node_modules/
+npm-debug.log*
+.npm
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dados do MongoDB (desenvolvimento)
+data/mongodb/
+mongo-data/
+
+# Arquivos temporários
+*.tmp
+*.temp
+temp_*
+test_*
+*_test.*
+*_temp.*
+
+# Arquivos de backup
+backup_*/
+*.backup
+*.bak
+
+# Cookies e sessões de teste
+cookies.txt
+*_cookies.txt
+sessions/
+
+# Arquivos de teste
+teste.*
+test.*
+*.test
+*.spec
+
+# Arquivos do sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Arquivos do editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Certificados SSL (desenvolvimento)
+*.pem
+*.key
+*.crt
+*.csr
+ssl/
+
+# Uploads de desenvolvimento (manter estrutura)
+uploads/*
+!uploads/.gitkeep
+
+# Arquivos de configuração local
+config.local.js
+local.json
+
+# Arquivos de cache
+.cache/
+*.cache
+
+# Arquivos de profiling
+*.prof
+
+# Arquivos Docker temporários
+.dockerignore.tmp
+
+# Arquivos de sistema Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==========================================
+# ARQUIVOS QUE DEVEM SER COMMITADOS
+# ==========================================
+# README.md
+# docker-compose.yml
+# app/**
+# nginx/**
+# docs/**
+# scripts/**
+# deploy.sh
+# package.json
+# .gitignore (este arquivo)

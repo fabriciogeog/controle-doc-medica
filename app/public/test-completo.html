@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Completo - Login + Visualização</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .step { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 10px 15px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Teste Completo - Login + Visualização</h1>
+    
+    <div id="step1" class="step">
+        <h3>Passo 1: Login</h3>
+        <button onclick="fazerLogin()">🔑 Fazer Login</button>
+        <div id="loginResult"></div>
+    </div>
+    
+    <div id="step2" class="step">
+        <h3>Passo 2: Testar Autenticação</h3>
+        <button onclick="testarAuth()">🔍 Verificar Auth</button>
+        <div id="authResult"></div>
+    </div>
+    
+    <div id="step3" class="step">
+        <h3>Passo 3: Testar Visualização</h3>
+        <button onclick="testarVisualizacao()">👁️ Testar Visualização</button>
+        <div id="visualizationResult"></div>
+    </div>
+
+    <script>
+        async function fazerLogin() {
+            const result = document.getElementById('loginResult');
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ senha: 'DocMed2025' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `<div class="success">✅ Login realizado com sucesso!</div>`;
+                    document.getElementById('step1').classList.add('success');
+                } else {
+                    result.innerHTML = `<div class="error">❌ Erro no login: ${data.message}</div>`;
+                    document.getElementById('step1').classList.add('error');
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro na requisição: ${error.message}</div>`;
+                document.getElementById('step1').classList.add('error');
+            }
+        }
+        
+        async function testarAuth() {
+            const result = document.getElementById('authResult');
+            try {
+                const response = await fetch('/api/auth/check', {
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    result.innerHTML = `<div class="success">✅ Usuário autenticado!</div>`;
+                    document.getElementById('step2').classList.add('success');
+                } else {
+                    result.innerHTML = `<div class="error">❌ Usuário não autenticado</div>`;
+                    document.getElementById('step2').classList.add('error');
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                document.getElementById('step2').classList.add('error');
+            }
+        }
+        
+        async function testarVisualizacao() {
+            const result = document.getElementById('visualizationResult');
+            const documentoId = '68c49b8577eae003318ff3d7';
+            
+            try {
+                result.innerHTML = '<p>🔄 Carregando...</p>';
+                
+                const response = await fetch(`/api/documentos/${documentoId}`, {
+                    credentials: 'include'
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        result.innerHTML = `<div class="error">🔒 Não autorizado - Faça login primeiro</div>`;
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <div class="success">
+                            ✅ Documento carregado com sucesso!<br>
+                            <strong>ID:</strong> ${data.data._id}<br>
+                            <strong>Tipo:</strong> ${data.data.tipoDocumento}<br>
+                            <strong>Descrição:</strong> ${data.data.descricao}
+                        </div>
+                        <details>
+                            <summary>Dados completos (JSON)</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                    document.getElementById('step3').classList.add('success');
+                } else {
+                    result.innerHTML = `<div class="error">❌ API retornou erro: ${data.message}</div>`;
+                    document.getElementById('step3').classList.add('error');
+                }
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                document.getElementById('step3').classList.add('error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Sistema Médico</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .debug-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        #logs { background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; height: 300px; overflow-y: auto; border: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug do Sistema Médico</h1>
+    
+    <div class="debug-box">
+        <h2>Status do JavaScript</h2>
+        <div id="js-status" class="status info">Verificando...</div>
+        
+        <h3>Variáveis Globais</h3>
+        <div id="global-vars"></div>
+        
+        <h3>Testes de Função</h3>
+        <button onclick="testLoginFunction()">Testar Login</button>
+        <button onclick="testUploadFunction()">Testar Upload</button>
+        <button onclick="testEditFunction()">Testar Edição</button>
+        <button onclick="testDeleteFunction()">Testar Exclusão</button>
+        
+        <h3>Logs de Debug</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${timestamp}] ${message}<br>`;
+            logs.scrollTop = logs.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('js-status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function checkGlobalVars() {
+            const varsDiv = document.getElementById('global-vars');
+            let html = '';
+            
+            // Verificar app
+            if (typeof window.app !== 'undefined') {
+                html += '<div class="status success">✅ window.app: Disponível</div>';
+                log('✅ window.app está disponível');
+                
+                // Verificar métodos da app
+                const methods = ['editarDocumento', 'confirmarExclusao', 'salvarDocumento'];
+                methods.forEach(method => {
+                    if (typeof window.app[method] === 'function') {
+                        html += `<div class="status success">✅ app.${method}: Função disponível</div>`;
+                        log(`✅ app.${method} é uma função`);
+                    } else {
+                        html += `<div class="status error">❌ app.${method}: Não disponível</div>`;
+                        log(`❌ app.${method} não está disponível`);
+                    }
+                });
+            } else {
+                html += '<div class="status error">❌ window.app: Não disponível</div>';
+                log('❌ window.app não está disponível');
+            }
+            
+            varsDiv.innerHTML = html;
+        }
+
+        function testLoginFunction() {
+            log('🔍 Testando função de login...');
+            if (typeof window.app !== 'undefined' && typeof window.app.login === 'function') {
+                log('✅ Função de login encontrada');
+                // Teste básico sem executar
+                updateStatus('Função de login OK', 'success');
+            } else {
+                log('❌ Função de login não encontrada');
+                updateStatus('Função de login ERRO', 'error');
+            }
+        }
+
+        function testUploadFunction() {
+            log('🔍 Testando função de upload...');
+            const form = document.querySelector('#cadastroForm');
+            if (form) {
+                log('✅ Formulário de cadastro encontrado');
+                updateStatus('Formulário de upload OK', 'success');
+            } else {
+                log('❌ Formulário de cadastro não encontrado');
+                updateStatus('Formulário de upload ERRO', 'error');
+            }
+        }
+
+        function testEditFunction() {
+            log('🔍 Testando função de edição...');
+            if (typeof window.app !== 'undefined' && typeof window.app.editarDocumento === 'function') {
+                log('✅ Função editarDocumento encontrada');
+                
+                // Testar se o modal existe
+                const modal = document.getElementById('editModal');
+                if (modal) {
+                    log('✅ Modal de edição encontrado');
+                    updateStatus('Função de edição OK', 'success');
+                } else {
+                    log('❌ Modal de edição não encontrado');
+                    updateStatus('Modal de edição ERRO', 'error');
+                }
+            } else {
+                log('❌ Função editarDocumento não encontrada');
+                updateStatus('Função de edição ERRO', 'error');
+            }
+        }
+
+        function testDeleteFunction() {
+            log('🔍 Testando função de exclusão...');
+            if (typeof window.app !== 'undefined' && typeof window.app.confirmarExclusao === 'function') {
+                log('✅ Função confirmarExclusao encontrada');
+                
+                // Testar se o modal existe
+                const modal = document.getElementById('confirmModal');
+                if (modal) {
+                    log('✅ Modal de confirmação encontrado');
+                    updateStatus('Função de exclusão OK', 'success');
+                } else {
+                    log('❌ Modal de confirmação não encontrado');
+                    updateStatus('Modal de confirmação ERRO', 'error');
+                }
+            } else {
+                log('❌ Função confirmarExclusao não encontrada');
+                updateStatus('Função de exclusão ERRO', 'error');
+            }
+        }
+
+        // Executar verificações quando a página carregar
+        window.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Iniciando debug...');
+            
+            // Aguardar um pouco para o app carregar
+            setTimeout(() => {
+                checkGlobalVars();
+                
+                if (typeof window.app !== 'undefined') {
+                    updateStatus('JavaScript carregado com sucesso!', 'success');
+                    log('✅ Sistema JavaScript funcionando');
+                } else {
+                    updateStatus('Erro: JavaScript não carregado', 'error');
+                    log('❌ Sistema JavaScript com problemas');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

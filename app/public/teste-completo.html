@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Completo do Sistema</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .debug-section {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .status {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .btn-test {
+            margin: 5px;
+            padding: 6px 12px;
+            background: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-test:hover { background: #0056b3; }
+        #logOutput {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #212529;
+            color: #f8f9fa;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Elementos DOM necessários para o JavaScript funcionar -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <form id="loginForm">
+                <input type="password" id="senha" name="senha">
+            </form>
+            <div id="loginError" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div id="app" style="display: block;">
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🧪 Teste Completo - Sistema JavaScript</h1>
+                <button id="logoutBtn" class="btn btn-outline">Sair</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Debug Section -->
+            <div class="debug-section">
+                <h3>📊 Status do JavaScript</h3>
+                <div id="statusContainer">
+                    <div class="status info">⏳ Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Test Section -->
+            <div class="debug-section">
+                <h3>🧪 Testes de Funcionalidade</h3>
+                <div>
+                    <button class="btn-test" onclick="testarSeletorArquivos()">📁 Testar Seletor</button>
+                    <button class="btn-test" onclick="testarFuncaoExclusao()">🗑️ Testar Exclusão</button>
+                    <button class="btn-test" onclick="testarFuncaoEdicao()">✏️ Testar Edição</button>
+                    <button class="btn-test" onclick="testarToast()">🔔 Testar Toast</button>
+                    <button class="btn-test" onclick="executarDiagnostico()">🔄 Reexecutar</button>
+                </div>
+            </div>
+
+            <!-- Log Section -->
+            <div class="debug-section">
+                <h3>📋 Log de Testes</h3>
+                <div id="logOutput">Aguardando diagnóstico...</div>
+            </div>
+
+            <!-- Test Form Section -->
+            <div class="debug-section">
+                <h3>📝 Teste do Formulário com Seletor</h3>
+                <form id="cadastroForm" style="max-width: 600px;">
+                    <div class="form-group full-width">
+                        <label for="caminhos">Arquivos do Documento:</label>
+                        
+                        <!-- Botão para abrir navegador de arquivos -->
+                        <div style="margin-bottom: 15px;">
+                            <input type="file" id="seletorArquivos" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" onchange="app.capturarCaminhos(this)">
+                            <button type="button" class="btn btn-outline" onclick="document.getElementById('seletorArquivos').click()">
+                                📁 Navegar e Selecionar Arquivos
+                            </button>
+                        </div>
+                        
+                        <!-- Lista de arquivos selecionados -->
+                        <div id="listaArquivosSelecionados" style="margin-bottom: 15px;"></div>
+                        
+                        <!-- Campo hidden com caminhos -->
+                        <textarea id="caminhos" name="caminhos" rows="3" style="display: none;"></textarea>
+                        
+                        <small>📝 Clique em "Navegar e Selecionar Arquivos" para escolher documentos.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" placeholder="Descrição do documento" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Salvar Documento</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2>⚠️ Confirmar Ação</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Tem certeza?</p>
+            </div>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn btn-danger">Sim</button>
+                <button id="confirmNo" class="btn btn-outline">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading e Toast -->
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <div id="toast" class="toast" style="display: none;">
+        <div id="toastMessage"></div>
+    </div>
+
+    <!-- Links de Navegação -->
+    <div style="text-align: center; padding: 20px; background: #f8f9fa; margin-top: 20px;">
+        <a href="/" class="btn btn-primary">🏠 Sistema Principal</a>
+        <a href="/debug.html" class="btn btn-outline">🔧 Debug Original</a>
+        <a href="/debug-simples.html" class="btn btn-outline">🔍 Debug Simples</a>
+        <a href="/teste-seletor.html" class="btn btn-outline">📁 Teste Seletor</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/app.js"></script>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function setStatus(message, type = 'info') {
+            const container = document.getElementById('statusContainer');
+            container.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function executarDiagnostico() {
+            const output = document.getElementById('logOutput');
+            output.textContent = 'Iniciando diagnóstico...\n';
+            
+            log('🚀 Executando diagnóstico completo...');
+            log(`✅ DOM: ${document.readyState}`);
+            
+            // Verificar window.app
+            if (typeof window.app !== 'undefined') {
+                log('✅ window.app está disponível');
+                log(`   Tipo: ${typeof window.app}`);
+                log(`   Construtor: ${window.app.constructor.name}`);
+                
+                // Testar métodos
+                const metodosParaTestar = [
+                    'capturarCaminhos',
+                    'abrirArquivo',
+                    'editarDocumento',
+                    'confirmarExclusao',
+                    'salvarDocumento',
+                    'showToast',
+                    'loadDashboard'
+                ];
+                
+                let metodosOK = 0;
+                metodosParaTestar.forEach(metodo => {
+                    if (typeof window.app[metodo] === 'function') {
+                        log(`✅ Método ${metodo} disponível`);
+                        metodosOK++;
+                    } else {
+                        log(`❌ Método ${metodo} NÃO encontrado`);
+                    }
+                });
+                
+                if (metodosOK === metodosParaTestar.length) {
+                    setStatus(`✅ JavaScript 100% funcional! (${metodosOK}/${metodosParaTestar.length} métodos)`, 'success');
+                } else {
+                    setStatus(`⚠️ JavaScript parcialmente funcional (${metodosOK}/${metodosParaTestar.length} métodos)`, 'warning');
+                }
+                
+            } else {
+                log('❌ window.app NÃO disponível');
+                setStatus('❌ JavaScript com problemas - window.app não encontrado', 'error');
+            }
+            
+            // Verificar DocumentacaoMedica
+            if (typeof DocumentacaoMedica !== 'undefined') {
+                log('✅ Classe DocumentacaoMedica disponível');
+            } else {
+                log('❌ Classe DocumentacaoMedica NÃO encontrada');
+            }
+            
+            // Verificar elementos DOM
+            const elementos = ['cadastroForm', 'loginForm', 'app', 'loading', 'confirmModal', 'toast'];
+            elementos.forEach(elementId => {
+                const elemento = document.getElementById(elementId);
+                if (elemento) {
+                    log(`✅ Elemento #${elementId} encontrado`);
+                } else {
+                    log(`❌ Elemento #${elementId} NÃO encontrado`);
+                }
+            });
+            
+            log('🏁 Diagnóstico concluído.');
+        }
+        
+        // Testes específicos
+        function testarSeletorArquivos() {
+            log('📁 Testando seletor de arquivos...');
+            if (typeof window.app !== 'undefined' && typeof window.app.capturarCaminhos === 'function') {
+                log('✅ Função capturarCaminhos disponível');
+                const seletor = document.getElementById('seletorArquivos');
+                if (seletor) {
+                    seletor.click();
+                    log('✅ Seletor de arquivos acionado');
+                } else {
+                    log('❌ Elemento seletorArquivos não encontrado');
+                }
+            } else {
+                log('❌ Função capturarCaminhos não disponível');
+            }
+        }
+        
+        function testarFuncaoExclusao() {
+            log('🗑️ Testando função de exclusão...');
+            if (typeof window.app !== 'undefined' && typeof window.app.confirmarExclusao === 'function') {
+                window.app.confirmarExclusao('teste-id', 'Documento de Teste');
+                log('✅ Modal de confirmação de exclusão aberto');
+            } else {
+                log('❌ Função confirmarExclusao não disponível');
+            }
+        }
+        
+        function testarFuncaoEdicao() {
+            log('✏️ Testando função de edição...');
+            if (typeof window.app !== 'undefined' && typeof window.app.editarDocumento === 'function') {
+                log('✅ Função editarDocumento disponível (teste simulado)');
+            } else {
+                log('❌ Função editarDocumento não disponível');
+            }
+        }
+        
+        function testarToast() {
+            log('🔔 Testando sistema de notificações...');
+            if (typeof window.app !== 'undefined' && typeof window.app.showToast === 'function') {
+                window.app.showToast('🎉 Teste de notificação funcionando!', 'success');
+                log('✅ Toast de teste exibido');
+            } else {
+                log('❌ Função showToast não disponível');
+            }
+        }
+        
+        // Executar diagnóstico quando carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(executarDiagnostico, 1000);
+        });
+    </script>
+</body>
+</html>

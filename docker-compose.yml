@@ -1,0 +1,78 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb_docmedica
+    restart: unless-stopped
+    environment:
+      - MONGODB_INITDB_DATABASE=controle_doc_medica
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongodb:/data/db
+      - ./data/logs:/var/log/mongodb
+    user: "999:999"
+    networks:
+      - rede_doc_medica
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  app_nodejs:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: nodejs_docmedica
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/controle_doc_medica
+      - PORT=3000
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./app:/usr/src/app
+      - ./uploads:/usr/src/app/uploads
+      # Evite montar node_modules em dev com bind mount; melhor usar .dockerignore
+    networks:
+      - rede_doc_medica
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  nginx:
+    image: nginx:stable-alpine3.21-perl
+    container_name: nginx_docmedica
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./data/logs:/var/log/nginx
+    networks:
+      - rede_doc_medica
+    depends_on:
+      app_nodejs:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  rede_doc_medica:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

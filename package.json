@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "express-validator": "^7.3.0",
+    "glob": "^11.0.3",
+    "multer": "^2.0.2",
+    "superagent": "^10.2.3"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}

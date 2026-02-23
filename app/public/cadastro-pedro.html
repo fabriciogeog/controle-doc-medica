@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Cadastro - Documentos do Pedro</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .destaque {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .info-diretorio {
+            background: #e8f4fd;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .caminho-atual {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <!-- Elementos DOM necessários -->
+    <div id="loginModal" class="modal" style="display: none;"></div>
+    <div id="app" style="display: block;">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="destaque">
+                    <h1>🏥📋 Cadastro de Documentos Médicos</h1>
+                    <p><strong>Documentos do Pedro - Área de Saúde</strong></p>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Informações do Diretório -->
+            <div class="info-diretorio">
+                <h3>📁 Informações do Diretório</h3>
+                <p><strong>Diretório atual dos documentos:</strong></p>
+                <div class="caminho-atual">/home/fabricio/Documentos/Assuntos - Pedro/Pedro - Saúde</div>
+                <small>💡 O seletor de arquivos já está configurado para este diretório</small>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div class="form-test" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h3>➕ Cadastrar Novo Documento</h3>
+                <form id="cadastroForm" onsubmit="cadastrarDocumento(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="tipoDocumento" class="required">Tipo do Documento:</label>
+                            <select id="tipoDocumento" name="tipoDocumento" required>
+                                <option value="">Selecione...</option>
+                                <option value="Relatório">Relatório</option>
+                                <option value="Exame">Exame</option>
+                                <option value="Receita">Receita</option>
+                                <option value="Laudo">Laudo</option>
+                                <option value="Atestado">Atestado</option>
+                                <option value="Cartão de Vacina">Cartão de Vacina</option>
+                                <option value="Resultado">Resultado</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="especialidadeMedica" class="required">Especialidade Médica:</label>
+                            <input type="text" id="especialidadeMedica" name="especialidadeMedica" required 
+                                   placeholder="Ex: Cardiologia, Neurologia, Pediatria">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dataSolicitacaoEmissao" class="required">Data do Documento:</label>
+                            <input type="date" id="dataSolicitacaoEmissao" name="dataSolicitacaoEmissao" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profissionalNome" class="required">Nome do Profissional:</label>
+                            <input type="text" id="profissionalNome" name="profissionalSolicitante.nome" required 
+                                   placeholder="Ex: Dr. João Silva">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profissionalRegistro" class="required">Registro Profissional:</label>
+                            <input type="text" id="profissionalRegistro" name="profissionalSolicitante.numeroRegistro" required 
+                                   placeholder="Ex: CRM/SP 123456">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profissionalEspecialidade">Especialidade do Profissional:</label>
+                            <input type="text" id="profissionalEspecialidade" name="profissionalSolicitante.especialidade" 
+                                   placeholder="Ex: Cardiologista">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="descricao" class="required">Descrição:</label>
+                            <textarea id="descricao" name="descricao" rows="4" required 
+                                      placeholder="Descrição detalhada do documento"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instituicaoNome" class="required">Nome da Instituição:</label>
+                            <input type="text" id="instituicaoNome" name="instituicao.nome" required 
+                                   placeholder="Ex: Hospital São Lucas">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instituicaoCnpj">CNPJ da Instituição:</label>
+                            <input type="text" id="instituicaoCnpj" name="instituicao.cnpj" 
+                                   placeholder="00.000.000/0000-00">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="tags">Tags (separadas por vírgula):</label>
+                            <input type="text" id="tags" name="tags" 
+                                   placeholder="Ex: exame, sangue, rotina">
+                        </div>
+                        
+                        <!-- Seletor de Arquivos Personalizado -->
+                        <div class="form-group full-width">
+                            <label for="caminhos">Arquivos do Documento:</label>
+                            
+                            <!-- Botão para abrir navegador de arquivos -->
+                            <div style="margin-bottom: 15px;">
+                                <input type="file" id="seletorArquivos" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display: none;" onchange="app.capturarCaminhos(this)">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('seletorArquivos').click()">
+                                    📁 Navegar e Selecionar Arquivos
+                                </button>
+                                <small style="margin-left: 10px; color: #666;">
+                                    📂 Diretório: /home/fabricio/Documentos/Assuntos - Pedro/Pedro - Saúde
+                                </small>
+                            </div>
+                            
+                            <!-- Lista de arquivos selecionados -->
+                            <div id="listaArquivosSelecionados" style="margin-bottom: 15px;"></div>
+                            
+                            <!-- Campo com caminhos -->
+                            <textarea id="caminhos" name="caminhos" rows="3" 
+                                      placeholder="Os caminhos dos arquivos aparecerão aqui automaticamente após a seleção"></textarea>
+                            
+                            <small>💡 Use o seletor acima ou digite os caminhos manualmente, um por linha</small>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="observacoes">Observações:</label>
+                            <textarea id="observacoes" name="observacoes" rows="3" 
+                                      placeholder="Observações adicionais sobre o documento"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Salvar Documento</button>
+                        <button type="button" onclick="limparFormulario()" class="btn btn-outline">🗑️ Limpar</button>
+                        <button type="button" onclick="preencherDataHoje()" class="btn btn-outline">📅 Data Hoje</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="confirmModal" class="modal"></div>
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Salvando documento...</p>
+    </div>
+    <div id="toast" class="toast" style="display: none;">
+        <div id="toastMessage"></div>
+    </div>
+
+    <!-- Links -->
+    <div style="text-align: center; padding: 20px; background: #f8f9fa; margin-top: 20px;">
+        <a href="/" class="btn btn-primary">🏠 Sistema Completo</a>
+        <a href="/teste-completo.html" class="btn btn-outline">🧪 Teste Completo</a>
+        <a href="/teste-cadastro.html" class="btn btn-outline">🧪 Teste Debug</a>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        async function cadastrarDocumento(event) {
+            event.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            loading.style.display = 'flex';
+            
+            try {
+                // Verificar se está logado
+                const authResponse = await fetch('/api/auth/check');
+                const authData = await authResponse.json();
+                
+                if (!authData.authenticated) {
+                    // Fazer login automático
+                    const loginResponse = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ senha: 'DocMed2025' })
+                    });
+                    
+                    if (!loginResponse.ok) {
+                        alert('❌ Erro na autenticação. Verifique a senha.');
+                        return;
+                    }
+                }
+                
+                const form = event.target;
+                const formData = new FormData(form);
+                
+                const response = await fetch('/api/documentos', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (window.app && typeof window.app.showToast === 'function') {
+                        window.app.showToast('✅ Documento salvo com sucesso!', 'success');
+                    } else {
+                        alert('✅ Documento salvo com sucesso!');
+                    }
+                    form.reset();
+                    document.getElementById('listaArquivosSelecionados').innerHTML = '';
+                } else {
+                    if (window.app && typeof window.app.showToast === 'function') {
+                        window.app.showToast(`❌ Erro: ${data.message}`, 'error');
+                    } else {
+                        alert(`❌ Erro: ${data.message}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('❌ Erro de conexão');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById('cadastroForm').reset();
+            document.getElementById('listaArquivosSelecionados').innerHTML = '';
+        }
+
+        function preencherDataHoje() {
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('dataSolicitacaoEmissao').value = hoje;
+        }
+
+        // Auto-preencher data de hoje quando carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            preencherDataHoje();
+        });
+    </script>
+</body>
+</html>

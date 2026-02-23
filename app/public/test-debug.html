@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Debug - Visualização</title>
+</head>
+<body>
+    <h1>Test Debug - Visualização de Documento</h1>
+    <button onclick="testarVisualizacao()">Testar Visualização</button>
+    <div id="resultado"></div>
+
+    <script>
+        async function testarVisualizacao() {
+            const documentoId = '68c49b8577eae003318ff3d7';
+            const resultado = document.getElementById('resultado');
+            
+            try {
+                console.log('Testando visualização do documento:', documentoId);
+                
+                const response = await fetch(`/api/documentos/${documentoId}`);
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                resultado.innerHTML = `
+                    <h3>Resultado:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                if (data.success) {
+                    alert('✅ API funcionando! Sucesso na busca do documento.');
+                } else {
+                    alert('❌ API retornou erro: ' + data.message);
+                }
+                
+            } catch (error) {
+                console.error('Erro no teste:', error);
+                resultado.innerHTML = `<h3>Erro:</h3><p>${error.message}</p>`;
+                alert('❌ Erro na requisição: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

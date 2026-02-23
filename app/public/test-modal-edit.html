@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - Botão Editar Modal</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 10px 15px; margin: 5px; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; font-size: 12px; }
+        .logs { max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug - Botão Editar no Modal de Visualização</h1>
+    
+    <div class="test">
+        <h3>Passo 1: Fazer Login</h3>
+        <button onclick="fazerLogin()">🔑 Login</button>
+        <div id="loginResult"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Passo 2: Simular Abertura de Visualização</h3>
+        <button onclick="simularVisualizacao()">👁️ Simular Visualização</button>
+        <div id="visualResult"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Passo 3: Testar Função abrirEdicaoDoModal</h3>
+        <button onclick="testarBotaoEditar()">✏️ Testar Editar</button>
+        <div id="editResult"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Passo 4: Verificar Estado da Aplicação</h3>
+        <button onclick="verificarEstado()">🔍 Verificar Estado</button>
+        <div id="stateResult"></div>
+    </div>
+    
+    <div class="test">
+        <h3>📝 Console Logs</h3>
+        <div id="consoleLogs" class="logs"></div>
+        <button onclick="limparLogs()">🧹 Limpar Logs</button>
+    </div>
+
+    <script>
+        // Interceptar console.log para mostrar na página
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logs = [];
+        
+        function addLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${type}: ${message}`);
+            updateLogDisplay();
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog('LOG', args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog('ERROR', args.join(' '));
+        };
+        
+        function updateLogDisplay() {
+            document.getElementById('consoleLogs').innerHTML = 
+                '<pre>' + logs.slice(-20).join('\n') + '</pre>';
+        }
+        
+        function limparLogs() {
+            logs.length = 0;
+            updateLogDisplay();
+        }
+        
+        async function fazerLogin() {
+            const result = document.getElementById('loginResult');
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ senha: 'DocMed2025' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = '<div class="success">✅ Login OK</div>';
+                    console.log('Login realizado com sucesso');
+                } else {
+                    result.innerHTML = `<div class="error">❌ Login falhou: ${data.message}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                console.error('Erro no login:', error);
+            }
+        }
+        
+        async function simularVisualizacao() {
+            const result = document.getElementById('visualResult');
+            const documentoId = '68c49b8577eae003318ff3d7';
+            
+            try {
+                console.log('Simulando abertura de visualização...');
+                
+                // Verificar se app existe
+                if (typeof app === 'undefined') {
+                    result.innerHTML = '<div class="error">❌ Objeto app não encontrado. Carregue a página principal primeiro.</div>';
+                    return;
+                }
+                
+                // Simular a chamada de visualização
+                await app.abrirVisualizacao(documentoId);
+                
+                result.innerHTML = '<div class="success">✅ Visualização simulada</div>';
+                console.log('Visualização executada');
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                console.error('Erro na visualização:', error);
+            }
+        }
+        
+        function testarBotaoEditar() {
+            const result = document.getElementById('editResult');
+            
+            try {
+                console.log('Testando botão Editar...');
+                
+                // Verificar se app existe
+                if (typeof app === 'undefined') {
+                    result.innerHTML = '<div class="error">❌ Objeto app não encontrado</div>';
+                    return;
+                }
+                
+                // Verificar se a função existe
+                if (typeof app.abrirEdicaoDoModal !== 'function') {
+                    result.innerHTML = '<div class="error">❌ Função abrirEdicaoDoModal não encontrada</div>';
+                    return;
+                }
+                
+                // Verificar currentViewDocument
+                console.log('app.currentViewDocument:', app.currentViewDocument);
+                
+                // Tentar executar a função
+                app.abrirEdicaoDoModal();
+                
+                result.innerHTML = '<div class="success">✅ Função chamada</div>';
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                console.error('Erro ao testar botão:', error);
+            }
+        }
+        
+        function verificarEstado() {
+            const result = document.getElementById('stateResult');
+            
+            try {
+                console.log('Verificando estado da aplicação...');
+                
+                let info = '<h4>Estado da Aplicação:</h4>';
+                
+                if (typeof app === 'undefined') {
+                    info += '❌ app: undefined<br>';
+                } else {
+                    info += '✅ app: existe<br>';
+                    info += `📄 currentViewDocument: ${app.currentViewDocument ? 'existe' : 'null'}<br>`;
+                    
+                    if (app.currentViewDocument) {
+                        info += `🆔 ID: ${app.currentViewDocument._id}<br>`;
+                        info += `📋 Tipo: ${app.currentViewDocument.tipoDocumento}<br>`;
+                    }
+                    
+                    info += `⚙️ abrirEdicaoDoModal: ${typeof app.abrirEdicaoDoModal}<br>`;
+                    info += `⚙️ editarDocumento: ${typeof app.editarDocumento}<br>`;
+                }
+                
+                // Verificar se modal de visualização está aberto
+                const viewModal = document.getElementById('viewModal');
+                if (viewModal) {
+                    info += `👁️ Modal visualização: ${viewModal.classList.contains('show') ? 'aberto' : 'fechado'}<br>`;
+                } else {
+                    info += '❌ Modal visualização: não encontrado<br>';
+                }
+                
+                result.innerHTML = info;
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                console.error('Erro ao verificar estado:', error);
+            }
+        }
+        
+        // Aguardar o carregamento da página
+        setTimeout(() => {
+            console.log('Página de debug carregada');
+            verificarEstado();
+        }, 1000);
+    </script>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>

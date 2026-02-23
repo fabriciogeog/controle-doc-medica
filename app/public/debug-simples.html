@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Debug Simples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .success { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border-color: #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Debug Simples - JavaScript</h1>
+        
+        <div id="statusContainer">
+            <div class="status info">⏳ Carregando testes...</div>
+        </div>
+        
+        <h3>📊 Log de Testes:</h3>
+        <pre id="logOutput">Aguardando resultados...\n</pre>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn" onclick="executarTestes()">🔄 Executar Testes Novamente</button>
+            <a href="/debug.html" class="btn">🔧 Debug Completo</a>
+            <a href="/teste-seletor.html" class="btn">📁 Teste Seletor</a>
+            <a href="/" class="btn">🏠 Sistema Principal</a>
+        </div>
+    </div>
+
+    <!-- Incluir o JavaScript principal -->
+    <script src="js/app.js"></script>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+        }
+        
+        function setStatus(message, type = 'info') {
+            const container = document.getElementById('statusContainer');
+            container.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function executarTestes() {
+            const output = document.getElementById('logOutput');
+            output.textContent = 'Iniciando testes...\n';
+            
+            log('🚀 Executando diagnóstico JavaScript...');
+            
+            // Teste 1: Verificar se DOMContentLoaded foi disparado
+            log(`✅ DOM carregado: ${document.readyState}`);
+            
+            // Teste 2: Verificar se window.app existe
+            if (typeof window.app !== 'undefined') {
+                log('✅ window.app está disponível');
+                log(`   Tipo: ${typeof window.app}`);
+                log(`   Construtor: ${window.app.constructor.name}`);
+                
+                // Teste 3: Verificar métodos principais
+                const metodosParaTestar = [
+                    'capturarCaminhos',
+                    'abrirArquivo',
+                    'editarDocumento',
+                    'confirmarExclusao',
+                    'salvarDocumento',
+                    'loadDashboard'
+                ];
+                
+                let metodosOK = 0;
+                metodosParaTestar.forEach(metodo => {
+                    if (typeof window.app[metodo] === 'function') {
+                        log(`✅ Método ${metodo} disponível`);
+                        metodosOK++;
+                    } else {
+                        log(`❌ Método ${metodo} NÃO encontrado`);
+                    }
+                });
+                
+                if (metodosOK === metodosParaTestar.length) {
+                    setStatus('✅ Todos os testes passaram! JavaScript funcionando corretamente.', 'success');
+                } else {
+                    setStatus(`⚠️ ${metodosOK}/${metodosParaTestar.length} métodos encontrados. Verifique os métodos faltantes.`, 'warning');
+                }
+                
+            } else {
+                log('❌ window.app NÃO está disponível');
+                log('   Possíveis causas:');
+                log('   1. Erro de sintaxe JavaScript');
+                log('   2. DOMContentLoaded não executado');
+                log('   3. Arquivo js/app.js não carregado');
+                
+                setStatus('❌ JavaScript com problemas - window.app não encontrado', 'error');
+            }
+            
+            // Teste 4: Verificar se DocumentacaoMedica existe
+            if (typeof DocumentacaoMedica !== 'undefined') {
+                log('✅ Classe DocumentacaoMedica disponível');
+            } else {
+                log('❌ Classe DocumentacaoMedica NÃO encontrada');
+            }
+            
+            // Teste 5: Verificar elementos DOM principais
+            const elementosParaTestar = ['cadastroForm', 'loginForm', 'app', 'loading'];
+            elementosParaTestar.forEach(elementId => {
+                const elemento = document.getElementById(elementId);
+                if (elemento) {
+                    log(`✅ Elemento #${elementId} encontrado`);
+                } else {
+                    log(`❌ Elemento #${elementId} NÃO encontrado`);
+                }
+            });
+            
+            log('🏁 Diagnóstico concluído.');
+        }
+        
+        // Função para forçar criação do window.app se necessário
+        function forcarCriacaoApp() {
+            if (typeof DocumentacaoMedica !== 'undefined' && typeof window.app === 'undefined') {
+                try {
+                    log('🔧 Tentando criar window.app manualmente...');
+                    window.app = new DocumentacaoMedica();
+                    log('✅ window.app criado com sucesso!');
+                    return true;
+                } catch (error) {
+                    log(`❌ Erro ao criar window.app: ${error.message}`);
+                    return false;
+                }
+            }
+            return window.app !== undefined;
+        }
+        
+        // Executar testes quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    forcarCriacaoApp();
+                    executarTestes();
+                }, 500);
+            });
+        } else {
+            setTimeout(() => {
+                forcarCriacaoApp();
+                executarTestes();
+            }, 500);
+        }
+    </script>
+</body>
+</html>
