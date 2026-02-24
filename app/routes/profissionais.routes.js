@@ -24,9 +24,7 @@ const profissionalValidators = [
   body('numeroRegistro')
     .isLength({ min: 1, max: 50 })
     .trim()
-    .withMessage(
-      'Número de registro é obrigatório e deve ter até 50 caracteres',
-    ),
+    .withMessage('Número de registro é obrigatório e deve ter até 50 caracteres'),
   body('especialidade')
     .isLength({ min: 1, max: 100 })
     .trim()
@@ -43,6 +41,10 @@ const profissionalValidators = [
 ];
 
 router.get('/', listarProfissionais);
+
+// /busca/autocomplete must come BEFORE /:id to prevent Express matching "busca" as :id
+router.get('/busca/autocomplete', autocompleteProfissionais);
+
 router.get('/:id', obterProfissional);
 
 router.post(
@@ -64,7 +66,5 @@ router.put(
 router.patch('/:id/status', alterarStatusProfissional);
 
 router.delete('/:id', excluirProfissional);
-
-router.get('/busca/autocomplete', autocompleteProfissionais);
 
 module.exports = router;
