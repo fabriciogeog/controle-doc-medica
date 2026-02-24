@@ -15,8 +15,9 @@ function setupSession(app) {
         collectionName: 'sessions',
       }),
       cookie: {
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
+        sameSite: 'strict',
         maxAge: 24 * 60 * 60 * 1000,
       },
     }),

@@ -42,7 +42,7 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+    if ! command -v docker compose &> /dev/null && ! docker compose version &> /dev/null; then
         log "ERROR" "Docker Compose não está instalado. Por favor, instale o Docker Compose."
         exit 1
     fi
@@ -66,7 +66,7 @@ start_services() {
     log "INFO" "Iniciando serviços do Sistema de Saúde..."
     
     # Build e start dos containers
-    docker-compose up -d --build
+    docker compose up -d --build
     
     log "INFO" "⏳ Aguardando inicialização dos serviços..."
     sleep 10
@@ -80,21 +80,21 @@ check_services_health() {
     log "INFO" "Verificando saúde dos serviços..."
     
     # Verificar MongoDB
-    if docker-compose exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+    if docker compose exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
         log "INFO" "✅ MongoDB está funcionando"
     else
         log "WARN" "❌ MongoDB não está respondendo"
     fi
     
     # Verificar Node.js
-    if wget --spider --quiet http://localhost:3000/health 2>/dev/null; then
+    if wget --spider --quiet http://localhost:3001/health 2>/dev/null; then
         log "INFO" "✅ Node.js está funcionando"
     else
         log "WARN" "❌ Node.js não está respondendo"
     fi
-    
+
     # Verificar Nginx
-    if wget --spider --quiet http://localhost 2>/dev/null; then
+    if wget --spider --quiet --no-check-certificate https://localhost/health 2>/dev/null; then
         log "INFO" "✅ Nginx está funcionando"
     else
         log "WARN" "❌ Nginx não está respondendo"
@@ -104,7 +104,7 @@ check_services_health() {
 # Função para parar os serviços
 stop_services() {
     log "INFO" "Parando serviços do Sistema de Saúde..."
-    docker-compose down
+    docker compose down
     log "INFO" "✅ Serviços parados com sucesso"
 }
 
@@ -121,17 +121,17 @@ show_logs() {
     local service=${1:-""}
     if [[ -n $service ]]; then
         log "INFO" "Mostrando logs do serviço: $service"
-        docker-compose logs -f "$service"
+        docker compose logs -f "$service"
     else
         log "INFO" "Mostrando logs de todos os serviços"
-        docker-compose logs -f
+        docker compose logs -f
     fi
 }
 
 # Função para limpeza completa
 cleanup() {
     log "INFO" "Realizando limpeza completa..."
-    docker-compose down -v --remove-orphans
+    docker compose down -v --remove-orphans
     docker system prune -f
     log "INFO" "✅ Limpeza concluída"
 }
@@ -144,10 +144,10 @@ backup() {
     mkdir -p "$backup_dir"
     
     # Backup dos dados do MongoDB
-    docker-compose exec -T mongodb mongodump --out /data/backup
+    docker compose exec -T mongodb mongodump --out /data/backup
     
     # Copiar backup do container
-    docker cp $(docker-compose ps -q mongodb):/data/backup "$backup_dir/mongodb"
+    docker cp $(docker compose ps -q mongodb):/data/backup "$backup_dir/mongodb"
     
     # Backup dos logs
     cp -r data/logs "$backup_dir/"
@@ -158,7 +158,7 @@ backup() {
 # Função para mostrar status
 show_status() {
     log "INFO" "Status dos containers:"
-    docker-compose ps
+    docker compose ps
     
     echo ""
     log "INFO" "Uso de recursos:"
@@ -197,8 +197,8 @@ case "${1:-help}" in
         setup_directories
         start_services
         log "INFO" "🚀 Sistema de Saúde iniciado com sucesso!"
-        log "INFO" "📊 Acesse: http://localhost (Nginx)"
-        log "INFO" "🔗 API: http://localhost:3000 (Node.js)"
+        log "INFO" "📊 Acesse: https://localhost (Nginx)"
+        log "INFO" "🔗 API direto: http://localhost:3001 (Node.js)"
         log "INFO" "🗄️  MongoDB: localhost:27017"
         ;;
     "stop")

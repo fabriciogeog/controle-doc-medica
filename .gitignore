@@ -74,6 +74,7 @@ Thumbs.db
 *.crt
 *.csr
 ssl/
+nginx/certs/
 
 # Uploads de desenvolvimento (manter estrutura)
 uploads/*

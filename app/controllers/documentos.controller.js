@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const Documento = require('../models/Documento');
+const { validateFilePath } = require('../middlewares/filepath.middleware');
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads');
 
@@ -342,6 +343,13 @@ async function abrirArquivo(req, res) {
       });
     }
 
+    if (!validateFilePath(caminhoArquivo)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acesso ao caminho não permitido',
+      });
+    }
+
     if (!fs.existsSync(caminhoArquivo)) {
       return res.status(404).json({
         success: false,
@@ -443,6 +451,13 @@ async function visualizarArquivo(req, res) {
       return res.status(400).json({
         success: false,
         message: 'Caminho do arquivo não fornecido',
+      });
+    }
+
+    if (!validateFilePath(caminho)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acesso ao caminho não permitido',
       });
     }
 
