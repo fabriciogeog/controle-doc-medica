@@ -1663,7 +1663,7 @@ class DocumentacaoMedica {
         this.editarDocumento(documentoId);
     }
     
-    async clonarDocumento() {
+    async clonarDocumentoDoModal() {
         if (!this.currentViewDocument) {
             this.showToast('Nenhum documento selecionado para clonagem', 'error');
             return;
