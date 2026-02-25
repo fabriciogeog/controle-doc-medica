@@ -4,5 +4,6 @@ module.exports = {
   setupFiles: ['./__tests__/setup/env.js'],
   testTimeout: 30000,
   verbose: true,
+  forceExit: true,
   coveragePathIgnorePatterns: ['/node_modules/', '/public/'],
 };

@@ -1,3 +1,5 @@
+![CI](https://github.com/fabriciogeog/controle-doc-medica/actions/workflows/ci.yml/badge.svg)
+
 # 🏥 Sistema de Saúde - Docker Orchestration
 
 Este projeto implementa um sistema de saúde completo utilizando **MongoDB**, **Node.js** e **Nginx** orquestrados com Docker Compose na rede personalizada `rede_saude`.
