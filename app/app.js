@@ -23,8 +23,10 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Sessions
 setupSession(app);
 
-// Database
-connectDB();
+// Database (skipped in test environment — tests manage their own connection)
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Static files
 app.use(express.static(PUBLIC_DIR));
@@ -88,13 +90,15 @@ app.use('*', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Sistema de Documentação Médica rodando na porta ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📁 Diretório de uploads: ${UPLOAD_DIR}`);
-  console.log(`🌐 Interface web: http://localhost:${PORT}`);
-});
+// Start server (skipped in test environment — supertest binds its own port)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Sistema de Documentação Médica rodando na porta ${PORT}`);
+    console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📁 Diretório de uploads: ${UPLOAD_DIR}`);
+    console.log(`🌐 Interface web: http://localhost:${PORT}`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

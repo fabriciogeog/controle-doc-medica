@@ -26,7 +26,8 @@ const UsuarioSchema = new mongoose.Schema({
 // Hook para criptografar a senha antes de salvar
 UsuarioSchema.pre('save', async function (next) {
   if (!this.isModified('senha')) return next();
-  this.senha = await bcrypt.hash(this.senha, 12);
+  const rounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+  this.senha = await bcrypt.hash(this.senha, rounds);
   next();
 });
 
