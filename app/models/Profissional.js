@@ -52,7 +52,8 @@ const ProfissionalSchema = new mongoose.Schema({
     default: Date.now
   }
 }, {
-  timestamps: { createdAt: 'dataCriacao', updatedAt: 'dataAtualizacao' }
+  timestamps: { createdAt: 'dataCriacao', updatedAt: 'dataAtualizacao' },
+  collection: 'profissionais',
 });
 
 // Índice de texto para busca avançada (DAS 4.2)
