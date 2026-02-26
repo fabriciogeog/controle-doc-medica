@@ -1,311 +1,200 @@
 ![CI](https://github.com/fabriciogeog/controle-doc-medica/actions/workflows/ci.yml/badge.svg)
 
-# 🏥 Sistema de Saúde - Docker Orchestration
+# Controle de Documentação Médica
 
-Este projeto implementa um sistema de saúde completo utilizando **MongoDB**, **Node.js** e **Nginx** orquestrados com Docker Compose na rede personalizada `rede_saude`.
+Sistema pessoal para organizar documentos médicos: exames, laudos, receitas, atestados e outros registros de saúde. SPA protegida por senha, com upload de arquivos e busca por profissional, especialidade e tags.
 
-## 📋 Pré-requisitos
+## Arquitetura
+
+```
+Browser → NGINX (:80/:443) → Node.js/Express (:3000) → MongoDB (:27017)
+```
+
+Três serviços Docker orquestrados na rede `rede_doc_medica` (172.21.0.0/16):
+
+- **NGINX** — proxy reverso, HTTPS (redirecionamento HTTP→HTTPS), assets estáticos
+- **Node.js/Express** — API REST, autenticação por sessão, upload de arquivos
+- **MongoDB** — banco de dados com Mongoose ODM, sessões via `connect-mongo`
+
+## Pré-requisitos
 
 - Docker 20.10+
 - Docker Compose 2.0+
-- Curl (para testes de health check)
 
-## 🚀 Início Rápido
+## Início Rápido
 
-1. **Clone e execute o projeto:**
+**1. Configure as variáveis de ambiente:**
+
 ```bash
-cd projeto-saude
+cp app/.env.example app/.env
+# Edite app/.env: SESSION_SECRET (32+ chars) e ADMIN_PASSWORD
+```
+
+**2. Crie o usuário administrador:**
+
+```bash
+node app/scripts/criar-usuario.js
+```
+
+**3. Inicie os serviços:**
+
+```bash
 ./deploy.sh start
 ```
 
-2. **Acesse a aplicação:**
-- **Interface Web:** http://localhost (via Nginx)
-- **API Direta:** http://localhost:3000 (Node.js)
-- **Banco de dados:** mongodb://localhost:27017
+**4. Acesse:**
 
-## 🏗️ Arquitetura
+- `https://localhost` — interface web
+- `http://localhost/health` — health check
+
+## Comandos
+
+### Deploy
+
+```bash
+./deploy.sh start      # Iniciar com verificação de saúde
+./deploy.sh stop       # Parar todos os serviços
+./deploy.sh restart    # Reiniciar
+./deploy.sh status     # Status dos containers
+./deploy.sh logs       # Ver logs
+./deploy.sh health     # Checar endpoints de saúde
+./deploy.sh backup     # Backup do MongoDB
+./deploy.sh cleanup    # Remover containers e volumes (destrutivo)
+```
+
+### Docker direto
+
+```bash
+docker-compose up -d --build
+docker-compose logs -f app_nodejs
+docker-compose down
+```
+
+### Desenvolvimento local
+
+```bash
+cd app
+npm install
+npm run dev    # hot reload com nodemon
+npm test       # 60 testes Jest + Supertest
+npm run lint   # ESLint
+```
+
+## Estrutura do Projeto
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│    Nginx    │───►│   Node.js   │───►│  MongoDB    │
-│    :80      │    │    :3000    │    │   :27017    │
-└─────────────┘    └─────────────┘    └─────────────┘
-        │                  │                  │
-        └──────────────rede_saude──────────────┘
-```
-
-### Componentes
-
-- **Nginx** (nginx:stable-alpine3.21-perl)
-  - Proxy reverso e servidor web
-  - Load balancer para aplicação Node.js
-  - Configurações de segurança e performance
-
-- **Node.js** (node:iron-trixie-slim)
-  - API REST para gestão de pacientes
-  - Middleware de segurança (helmet, cors, rate limiting)
-  - Health checks automáticos
-
-- **MongoDB** (mongodb/mongodb-community-server:latest)
-  - Banco de dados NoSQL
-  - Persistência de dados em volumes
-  - Configurações de autenticação
-
-## 📁 Estrutura do Projeto
-
-```
-projeto-saude/
-├── docker-compose.yml       # Orquestração dos serviços
-├── deploy.sh               # Script de gerenciamento
-├── README.md              # Documentação
+controle-doc-medica/
+├── docker-compose.yml
+├── deploy.sh
 ├── app/
-│   ├── Dockerfile         # Container da aplicação Node.js
-│   ├── package.json       # Dependências Node.js
-│   ├── app.js            # Aplicação principal
-│   └── .env.example      # Variáveis de ambiente
+│   ├── app.js                        # Entrada da aplicação
+│   ├── config/                       # DB, segurança, sessão
+│   ├── controllers/                  # auth, documentos, profissionais
+│   ├── middlewares/                  # auth, validação, deduplicação, filepath
+│   ├── models/                       # Documento, Profissional, Usuario
+│   ├── routes/                       # Montagem das rotas
+│   ├── scripts/                      # criar-usuario, resetar-senha
+│   ├── public/                       # SPA (HTML/CSS/JS)
+│   └── __tests__/                    # Testes automatizados
 ├── nginx/
-│   ├── nginx.conf        # Configuração principal do Nginx
-│   └── conf.d/
-│       └── saude.conf    # Configuração específica da aplicação
-└── data/
-    ├── mongodb/          # Dados persistentes do MongoDB
-    └── logs/            # Logs da aplicação e Nginx
+│   └── conf.d/saude.conf             # Proxy reverso + HTTPS
+└── uploads/                          # Arquivos médicos enviados
 ```
 
-## 🛠️ Comandos de Gerenciamento
+## API
 
-O script `deploy.sh` fornece uma interface amigável para gerenciar os containers:
+Todas as rotas `/api/*` requerem autenticação por sessão.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/auth/login` | Login com senha |
+| `POST` | `/auth/logout` | Logout |
+| `GET` | `/auth/check` | Verificar sessão ativa |
+| `GET` | `/health` | Health check |
+| `GET` | `/api/documentos` | Listar documentos (com filtros e paginação) |
+| `POST` | `/api/documentos` | Criar documento |
+| `GET` | `/api/documentos/:id` | Obter documento |
+| `PUT` | `/api/documentos/:id` | Atualizar documento |
+| `DELETE` | `/api/documentos/:id` | Remover documento |
+| `POST` | `/api/documentos/:id/clonar` | Clonar documento |
+| `GET` | `/api/estatisticas` | Estatísticas gerais |
+| `GET` | `/api/profissionais` | Listar profissionais |
+| `POST` | `/api/profissionais` | Cadastrar profissional |
+| `GET` | `/api/profissionais/busca/autocomplete` | Autocomplete |
+
+### Filtros disponíveis em `GET /api/documentos`
+
+```
+?tipoDocumento=Exame
+?especialidadeMedica=Cardiologia
+?profissional=<nome>
+?instituicao=<nome>
+?busca=<texto>
+?page=1&limit=20
+```
+
+### Tipos de documento
+
+`Relatório`, `Exame`, `Receita`, `Laudo`, `Atestado`, `Cartão de Vacina`, `Resultado`, `Outro`
+
+## Configuração
+
+### Variáveis de ambiente (`app/.env`)
+
+```env
+NODE_ENV=production
+PORT=3000
+MONGODB_URI=mongodb://mongodb:27017/controle_doc_medica
+SESSION_SECRET=<string aleatória com 32+ caracteres>
+ADMIN_PASSWORD=<sua senha de acesso>
+BCRYPT_ROUNDS=12
+```
+
+### Rede e volumes
+
+- **Rede:** `rede_doc_medica` — bridge, 172.21.0.0/16
+- `./data/mongodb` → dados do MongoDB
+- `./uploads` → arquivos médicos enviados
+- `./data/logs` → logs do NGINX
+
+## Segurança
+
+- Autenticação por sessão (MongoDB, TTL 24h)
+- HTTPS com certificado autoassinado (porta 443)
+- Rate limiting no login: 10 tentativas por IP a cada 15 min
+- Headers de segurança via Helmet.js
+- Proteção CSRF via `sameSite: strict`
+- Whitelist de caminhos para acesso a arquivos
+
+## Testes
+
+60 testes automatizados com Jest, Supertest e mongodb-memory-server (sem Docker):
 
 ```bash
-# Iniciar todos os serviços
-./deploy.sh start
-
-# Parar todos os serviços
-./deploy.sh stop
-
-# Reiniciar serviços
-./deploy.sh restart
-
-# Ver status dos containers
-./deploy.sh status
-
-# Visualizar logs
-./deploy.sh logs               # Todos os serviços
-./deploy.sh logs mongodb       # Apenas MongoDB
-./deploy.sh logs app_nodejs    # Apenas Node.js
-./deploy.sh logs nginx         # Apenas Nginx
-
-# Verificar saúde dos serviços
-./deploy.sh health
-
-# Criar backup dos dados
-./deploy.sh backup
-
-# Limpeza completa (remove volumes)
-./deploy.sh cleanup
+cd app && npm test
 ```
 
-## 🔗 API Endpoints
+```
+__tests__/
+├── setup/          # env, db in-memory, helpers
+├── middlewares/    # 23 testes unitários
+└── routes/         # 37 testes de integração
+```
 
-### Endpoints Disponíveis
+## Troubleshooting
 
-- `GET /` - Informações da API
-- `GET /health` - Status da aplicação
-- `GET /api/pacientes` - Listar pacientes
-- `POST /api/pacientes` - Criar paciente
-- `GET /api/pacientes/:id` - Buscar paciente por ID
-- `PUT /api/pacientes/:id` - Atualizar paciente
-- `DELETE /api/pacientes/:id` - Remover paciente
-
-### Exemplo de Uso
-
+**Porta em uso:**
 ```bash
-# Verificar status da API
-curl http://localhost/health
-
-# Listar pacientes
-curl http://localhost/api/pacientes
-
-# Criar novo paciente
-curl -X POST http://localhost/api/pacientes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "João Silva",
-    "cpf": "123.456.789-00",
-    "idade": 35,
-    "telefone": "(11) 99999-9999",
-    "email": "joao@email.com"
-  }'
+sudo ss -tlnp | grep -E ':80|:443|:3000|:27017'
 ```
 
-## 🔧 Configurações
-
-### Variáveis de Ambiente
-
-Copie `.env.example` para `.env` e ajuste conforme necessário:
-
+**Containers não sobem:**
 ```bash
-cd app
-cp .env.example .env
+./deploy.sh logs
+./deploy.sh cleanup && ./deploy.sh start
 ```
 
-### Rede Docker
-
-O projeto utiliza uma rede personalizada chamada `rede_saude`:
-- **Driver:** bridge
-- **Subnet:** 172.20.0.0/16
-- **Isolamento:** Containers só se comunicam dentro desta rede
-
-### Volumes Persistentes
-
-- **MongoDB:** `./data/mongodb:/data/db`
-- **Logs:** `./data/logs:/var/log/nginx`
-- **Aplicação:** `./app:/usr/src/app` (para desenvolvimento)
-
-## 🔒 Segurança
-
-### Configurações Implementadas
-
-- **Rate Limiting:** 100 requests por IP a cada 15 minutos
-- **CORS:** Configurado para origens específicas
-- **Headers de Segurança:** Helmet.js, X-Frame-Options, etc.
-- **Usuário não-root:** Container Node.js roda com usuário dedicado
-- **Nginx Security:** Server tokens ocultos, headers de segurança
-
-### Credenciais Padrão
-
-⚠️ **Altere em produção!**
-
-- **MongoDB:**
-  - Usuário: `admin`
-  - Senha: `senha_admin_123`
-  - Database: `saude_db`
-
-## 📊 Monitoramento
-
-### Health Checks
-
-Todos os serviços possuem health checks configurados:
-- **MongoDB:** ping no banco de dados
-- **Node.js:** endpoint `/health`
-- **Nginx:** verificação de configuração
-
-### Logs
-
-- **Nginx:** `/var/log/nginx/` (mapeado para `./data/logs/`)
-- **Node.js:** Console output (acessível via `docker-compose logs`)
-- **MongoDB:** `/var/log/mongodb/` (mapeado para `./data/logs/`)
-
-## 🚨 Troubleshooting
-
-### Problemas Comuns
-
-1. **Porta em uso:**
-   ```bash
-   # Verificar processos usando as portas
-   sudo netstat -tulpn | grep :80
-   sudo netstat -tulpn | grep :3000
-   sudo netstat -tulpn | grep :27017
-   ```
-
-2. **Permissões de volume:**
-   ```bash
-   # Corrigir permissões do diretório de dados
-   sudo chown -R $USER:$USER data/
-   ```
-
-3. **Containers não iniciam:**
-   ```bash
-   # Verificar logs de erro
-   ./deploy.sh logs
-   
-   # Limpar e reiniciar
-   ./deploy.sh cleanup
-   ./deploy.sh start
-   ```
-
-### Verificação de Conectividade
-
+**Resetar senha:**
 ```bash
-# Testar conectividade entre containers
-docker-compose exec app_nodejs ping mongodb
-docker-compose exec nginx ping app_nodejs
-
-# Verificar DNS interno
-docker-compose exec app_nodejs nslookup mongodb
+node app/scripts/resetar-senha.js
 ```
-
-## 🔄 Backup e Recuperação
-
-### Backup Automático
-
-```bash
-# Criar backup completo
-./deploy.sh backup
-```
-
-### Restauração Manual
-
-```bash
-# Parar serviços
-./deploy.sh stop
-
-# Restaurar dados do MongoDB
-docker-compose up -d mongodb
-docker-compose exec mongodb mongorestore /data/backup/saude_db
-
-# Iniciar todos os serviços
-./deploy.sh start
-```
-
-## 📝 Desenvolvimento
-
-### Modo de Desenvolvimento
-
-Para desenvolvimento com hot reload:
-
-1. Instale dependências localmente:
-   ```bash
-   cd app
-   npm install
-   ```
-
-2. Execute em modo desenvolvimento:
-   ```bash
-   npm run dev
-   ```
-
-3. Use docker-compose para apenas MongoDB e Nginx:
-   ```bash
-   docker-compose up -d mongodb nginx
-   ```
-
-### Testes
-
-```bash
-cd app
-npm test
-```
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 📞 Suporte
-
-Para suporte e questões:
-- Abra uma issue no repositório
-- Consulte os logs: `./deploy.sh logs`
-- Verifique a saúde dos serviços: `./deploy.sh health`
-
----
-
-**Sistema de Saúde v1.0.0** - Desenvolvido com ❤️ usando Docker, Node.js, MongoDB e Nginx.
