@@ -4,10 +4,9 @@ FROM node:iron-trixie-slim
 # Definir diretório de trabalho
 WORKDIR /usr/src/app
 
-# Instalar dependências do sistema para wget (para healthcheck) e evince (para PDFs)
+# Instalar wget para healthcheck
 RUN apt-get update && apt-get install -y \
     wget \
-    evince \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar package.json e package-lock.json primeiro (para cache das dependências)
