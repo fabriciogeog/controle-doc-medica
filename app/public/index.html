@@ -43,6 +43,7 @@
                     <p>Sistema Pessoal de Gerenciamento de Documentos</p>
                 </div>
                 <div class="header-right">
+                    <button id="contaBtn" class="btn btn-outline">👤 Minha Conta</button>
                     <button id="logoutBtn" class="btn btn-outline">Sair</button>
                 </div>
             </div>
@@ -634,6 +635,64 @@
             <div class="modal-actions">
                 <button id="confirmYes" class="btn btn-danger">Sim</button>
                 <button id="confirmNo" class="btn btn-outline">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Minha Conta -->
+    <div id="contaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 Minha Conta</h2>
+                <button class="modal-close" onclick="app.fecharModalConta()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Dados da Conta -->
+                <div class="view-section">
+                    <h3>📋 Dados da Conta</h3>
+                    <form id="perfilForm">
+                        <div class="form-group">
+                            <label for="contaNome">Nome:</label>
+                            <input type="text" id="contaNome" name="nome" required
+                                   placeholder="Seu nome" minlength="2" maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="contaEmail">E-mail:</label>
+                            <input type="email" id="contaEmail" name="email" required
+                                   placeholder="seu@email.com">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 Salvar Dados</button>
+                        </div>
+                    </form>
+                    <div id="perfilMsg" class="error-message" style="display:none;"></div>
+                </div>
+
+                <!-- Alterar Senha -->
+                <div class="view-section">
+                    <h3>🔒 Alterar Senha</h3>
+                    <form id="senhaForm">
+                        <div class="form-group">
+                            <label for="senhaAtual">Senha Atual:</label>
+                            <input type="password" id="senhaAtual" name="senhaAtual" required
+                                   placeholder="Digite a senha atual">
+                        </div>
+                        <div class="form-group">
+                            <label for="novaSenha">Nova Senha:</label>
+                            <input type="password" id="novaSenha" name="novaSenha" required
+                                   placeholder="Mínimo 6 caracteres" minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmarSenha">Confirmar Nova Senha:</label>
+                            <input type="password" id="confirmarSenha" name="confirmarSenha" required
+                                   placeholder="Repita a nova senha">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">🔑 Alterar Senha</button>
+                        </div>
+                    </form>
+                    <div id="senhaMsg" class="error-message" style="display:none;"></div>
+                </div>
             </div>
         </div>
     </div>

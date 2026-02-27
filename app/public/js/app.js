@@ -194,6 +194,19 @@ class DocumentacaoMedica {
         document.getElementById('logoutBtn').addEventListener('click', () => {
             this.logout();
         });
+
+        // Minha Conta
+        document.getElementById('contaBtn').addEventListener('click', () => this.abrirModalConta());
+
+        document.getElementById('perfilForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.atualizarPerfil(e.target);
+        });
+
+        document.getElementById('senhaForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.alterarSenha(e.target);
+        });
         
         // Cadastro de documento
         document.getElementById('cadastroForm').addEventListener('submit', (e) => {
@@ -2297,6 +2310,88 @@ class DocumentacaoMedica {
         }
     }
     
+    // ==================
+    // MINHA CONTA
+    // ==================
+
+    async abrirModalConta() {
+        try {
+            const response = await this.apiCall('/api/auth/perfil');
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('contaNome').value = data.data.nome || '';
+                document.getElementById('contaEmail').value = data.data.email || '';
+            }
+        } catch (e) { /* campos ficam em branco */ }
+        document.getElementById('senhaForm').reset();
+        this.hideMsg('perfilMsg');
+        this.hideMsg('senhaMsg');
+        document.getElementById('contaModal').classList.add('show');
+    }
+
+    fecharModalConta() {
+        document.getElementById('contaModal').classList.remove('show');
+    }
+
+    async atualizarPerfil(form) {
+        const nome = form.nome.value.trim();
+        const email = form.email.value.trim();
+        try {
+            const response = await this.apiCall('/api/auth/perfil', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                this.showToast('Dados atualizados com sucesso!', 'success');
+                this.hideMsg('perfilMsg');
+            } else {
+                this.showMsg('perfilMsg', data.message, 'error');
+            }
+        } catch (e) {
+            this.showMsg('perfilMsg', 'Erro ao atualizar dados', 'error');
+        }
+    }
+
+    async alterarSenha(form) {
+        const senhaAtual = form.senhaAtual.value;
+        const novaSenha = form.novaSenha.value;
+        const confirmar = form.confirmarSenha.value;
+        if (novaSenha !== confirmar) {
+            this.showMsg('senhaMsg', 'Nova senha e confirmação não coincidem', 'error');
+            return;
+        }
+        try {
+            const response = await this.apiCall('/api/auth/alterar-senha', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ senhaAtual, novaSenha }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                this.showToast('Senha alterada com sucesso!', 'success');
+                form.reset();
+                this.hideMsg('senhaMsg');
+            } else {
+                this.showMsg('senhaMsg', data.message, 'error');
+            }
+        } catch (e) {
+            this.showMsg('senhaMsg', 'Erro ao alterar senha', 'error');
+        }
+    }
+
+    showMsg(elementId, message, type = 'error') {
+        const el = document.getElementById(elementId);
+        el.textContent = message;
+        el.className = type === 'error' ? 'error-message' : 'success-message';
+        el.style.display = 'block';
+    }
+
+    hideMsg(elementId) {
+        document.getElementById(elementId).style.display = 'none';
+    }
+
     showToast(message, type = 'info') {
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toastMessage');
