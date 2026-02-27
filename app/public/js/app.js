@@ -600,8 +600,8 @@ class DocumentacaoMedica {
                         <strong>${arquivo.nomeArquivo}</strong><br>
                         <small style="color: #666;">📁 ${arquivo.caminhoAbsoluto}</small>
                     </div>
-                    <button class="btn btn-outline btn-sm" onclick="app.abrirArquivo('${arquivo.caminhoAbsoluto}')" title="Abrir arquivo">
-                        👁️ Abrir
+                    <button class="btn btn-outline btn-sm" onclick="app.abrirVisualizacao('${doc._id}')" title="Abrir no visualizador">
+                        👁️ Ver
                     </button>
                 </div>
             </div>
@@ -1369,130 +1369,41 @@ class DocumentacaoMedica {
         `;
     }
     
-    async abrirArquivo(caminhoAbsoluto) {
-        console.log('Tentando abrir arquivo:', caminhoAbsoluto);
-        
-        try {
-            // Mostrar loading
-            this.showToast('📂 Abrindo arquivo no Evince...', 'info');
-            
-            // Chamar endpoint para abrir no Evince
-            const response = await fetch('/api/abrir-arquivo', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    caminhoArquivo: caminhoAbsoluto
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.showToast('✅ Arquivo aberto com sucesso no Evince!', 'success');
-            } else {
-                // Se falhou, mostrar opções manuais como fallback
-                console.error('Erro ao abrir no Evince:', data.message);
-                this.showToast('⚠️ Não foi possível abrir automaticamente. Veja as opções manuais.', 'warning');
-                this.mostrarModalAberturaFallback(caminhoAbsoluto);
-            }
-        } catch (error) {
-            console.error('Erro na requisição:', error);
-            this.showToast('⚠️ Erro na conexão. Veja as opções manuais.', 'error');
-            this.mostrarModalAberturaFallback(caminhoAbsoluto);
+    visualizarArquivoEmbutido(caminho, nome) {
+        const panel = document.getElementById('fileViewerPanel');
+        const content = document.getElementById('fileViewerContent');
+        const title = document.getElementById('fileViewerTitle');
+
+        const url = '/api/visualizar-arquivo?caminho=' + encodeURIComponent(caminho);
+        const ext = caminho.split('.').pop().toLowerCase();
+        const ehImagem = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+
+        content.innerHTML = '';
+        title.textContent = nome || caminho.split('/').pop();
+
+        if (ehImagem) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = nome;
+            img.className = 'file-viewer-img';
+            content.appendChild(img);
+        } else {
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.className = 'file-viewer-iframe';
+            iframe.title = nome;
+            content.appendChild(iframe);
         }
+
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    
-    mostrarModalAberturaFallback(caminhoAbsoluto) {
-        // Detectar sistema operacional e definir comando sugerido
-        const isLinux = navigator.platform.toLowerCase().includes('linux');
-        const isWindows = navigator.platform.toLowerCase().includes('win');
-        const isMac = navigator.platform.toLowerCase().includes('mac');
-        
-        let comandoSugerido = '';
-        // Escapar espaços e caracteres especiais no caminho
-        const caminhoEscapado = caminhoAbsoluto.replace(/\\/g, '\\\\').replace(/'/g, '\\\'').replace(/"/g, '\\"');
-        
-        if (isLinux) {
-            comandoSugerido = `evince "${caminhoEscapado}"`; // Usar evince como padrão no Linux
-        } else if (isWindows) {
-            comandoSugerido = `start "" "${caminhoEscapado}"`;
-        } else if (isMac) {
-            comandoSugerido = `open "${caminhoEscapado}"`;
-        }
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.style.display = 'flex';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>⚠️ Abertura Manual Necessária</h3>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Arquivo:</strong> ${caminhoAbsoluto}</p>
-                    <p>🚨 Não foi possível abrir automaticamente no Evince. Use uma das opções abaixo:</p>
-                    
-                    <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
-                        <h4>🖥️ Opção 1: Evince no Terminal</h4>
-                        <p>Abra um terminal e execute:</p>
-                        <code style="background: #212529; color: #f8f9fa; padding: 8px; display: block; border-radius: 4px; font-family: monospace; margin: 5px 0; word-break: break-all;">${comandoSugerido}</code>
-                        <div style="display: flex; gap: 10px; margin-top: 8px;">
-                            <button onclick="navigator.clipboard.writeText('${comandoSugerido.replace(/'/g, '\\\'')}').then(() => alert('✅ Comando copiado!')).catch(() => alert('❌ Erro ao copiar'))" class="btn btn-outline btn-sm">
-                                📋 Copiar Comando
-                            </button>
-                            <button onclick="navigator.clipboard.writeText('cd $(dirname \"${caminhoAbsoluto.replace(/'/g, '\\\'')}\") && ${comandoSugerido.replace(/'/g, '\\\'')}').then(() => alert('✅ Comando completo copiado!')).catch(() => alert('❌ Erro'))" class="btn btn-outline btn-sm">
-                                📋 Copiar com CD
-                            </button>
-                        </div>
-                        <small style="color: #666;">Dica: Use "Copiar com CD" se você não estiver no diretório correto</small>
-                    </div>
-                    
-                    <div style="margin: 15px 0; padding: 10px; background: #f0f8ff; border-radius: 4px;">
-                        <h4>📂 Opção 2: Gerenciador de Arquivos</h4>
-                        <p><strong>Diretório:</strong> <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px; word-break: break-all;">${caminhoAbsoluto.substring(0, caminhoAbsoluto.lastIndexOf('/'))}</code></p>
-                        <p><strong>Nome do arquivo:</strong> <code style="background: #e9ecef; padding: 2px 6px; border-radius: 3px;">${caminhoAbsoluto.split('/').pop()}</code></p>
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button onclick="navigator.clipboard.writeText('${caminhoAbsoluto.replace(/'/g, '\\\'')}').then(() => alert('✅ Caminho completo copiado!')).catch(() => alert('❌ Erro ao copiar'))" class="btn btn-outline btn-sm">
-                                📋 Copiar Caminho Completo
-                            </button>
-                            <button onclick="navigator.clipboard.writeText('${caminhoAbsoluto.substring(0, caminhoAbsoluto.lastIndexOf('/')).replace(/'/g, '\\\'')}').then(() => alert('✅ Diretório copiado!')).catch(() => alert('❌ Erro'))" class="btn btn-outline btn-sm">
-                                📂 Copiar Só Diretório
-                            </button>
-                        </div>
-                        <small style="color: #666;">Cole o caminho na barra de endereço do gerenciador de arquivos</small>
-                    </div>
-                    
-                    <div style="margin: 15px 0; padding: 10px; background: #fff8e1; border-radius: 4px;">
-                        <h4>🌍 Opção 3: Navegador (se o arquivo estiver acessível via web)</h4>
-                        <button onclick="window.open('file://${caminhoAbsoluto}', '_blank')" class="btn btn-outline btn-sm">
-                            🔗 Tentar Novamente no Navegador
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-primary">
-                        ✅ Entendi
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Fechar modal clicando fora
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-        
-        document.body.appendChild(modal);
-        
-        // Auto-remover após 30 segundos
-        setTimeout(() => {
-            if (modal.parentElement) {
-                modal.remove();
-            }
-        }, 30000);
+
+    fecharVisualizador() {
+        const panel = document.getElementById('fileViewerPanel');
+        const content = document.getElementById('fileViewerContent');
+        panel.style.display = 'none';
+        content.innerHTML = '';
     }
     
     // ==================
@@ -1624,8 +1535,8 @@ class DocumentacaoMedica {
                 </div>
                 <div class="view-file-actions">
                     ${arquivo.caminhoAbsoluto ? `
-                        <button class="btn btn-outline btn-sm" onclick="app.abrirArquivo('${arquivo.caminhoAbsoluto}')">
-                            👁️ Abrir
+                        <button class="btn btn-outline btn-sm" onclick="app.visualizarArquivoEmbutido('${arquivo.caminhoAbsoluto}', '${(arquivo.nomeArquivo || 'arquivo').replace(/'/g, "\\'")}')">
+                            👁️ Visualizar
                         </button>
                     ` : ''}
                 </div>
@@ -1638,6 +1549,7 @@ class DocumentacaoMedica {
     fecharModalVisualizacao() {
         document.getElementById('viewModal').classList.remove('show');
         this.currentViewDocument = null;
+        this.fecharVisualizador();
     }
     
     abrirEdicaoDoModal() {

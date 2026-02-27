@@ -1300,6 +1300,53 @@ body {
 .image-icon { color: #10b981; }
 .other-icon { color: var(--cor-prata); }
 
+/* Visualizador embutido */
+.file-viewer-panel {
+    margin-top: var(--espaco-md);
+    border: 2px solid var(--cor-primaria);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.file-viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espaco-sm) var(--espaco-md);
+    background: var(--cor-primaria);
+    color: white;
+}
+
+.file-viewer-title {
+    font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100% - 120px);
+}
+
+.file-viewer-content {
+    width: 100%;
+    min-height: 500px;
+    background: #fff;
+}
+
+.file-viewer-iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+    display: block;
+}
+
+.file-viewer-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    padding: var(--espaco-md);
+}
+
 /* Indicador de vazio */
 .view-empty {
     color: var(--cor-texto-secundario);

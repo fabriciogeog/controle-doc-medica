@@ -35,6 +35,7 @@ services:
     volumes:
       - ./app:/usr/src/app
       - ./uploads:/usr/src/app/uploads
+      - /home/fabricio/Documentos:/home/fabricio/Documentos:ro
       # Evite montar node_modules em dev com bind mount; melhor usar .dockerignore
     networks:
       - rede_doc_medica
