@@ -7,6 +7,7 @@ WORKDIR /usr/src/app
 # Instalar wget para healthcheck
 RUN apt-get update && apt-get install -y \
     wget \
+    libcurl4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar package.json e package-lock.json primeiro (para cache das dependências)
